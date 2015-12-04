@@ -1,0 +1,4 @@
+[package]
+name = "raytrace"
+version = "0.1.0"
+authors = ["James <dong.james.sept14@gmail.com>"]
