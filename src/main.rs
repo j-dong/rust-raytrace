@@ -1,33 +1,44 @@
-extern crate nalgebra;
-use nalgebra::{Pnt3, Vec3};
+extern crate nalgebra as na;
 
-struct Ray {
-    origin: Pnt3<f32>,
-    direction: Vec3<f32>,
-}
+type Pnt3 = na::Pnt3<f32>;
+type Vec3 = na::Vec3<f32>;
+type Mat3 = na::Mat3<f32>;
+
+mod shapes;
+
+use shapes::Ray;
 
 fn main() {
     // camera parameters
-    let eye  = Pnt3::new(0.0f32, 0.0, 0.0);
-    let look = Vec3::new(0.0f32, 0.0, -1.0);
-    let up   = Vec3::new(0.0f32, 1.0, 0.0);
+    let eye  = Pnt3::new(0.0, 0.0, 0.0);
+    let look = Vec3::new(0.0, 0.0, -1.0);
+    let up   = Vec3::new(0.0, 1.0, 0.0);
     let focus = 0.5f32;
     // image parameters
     let width:i32  = 100;
     let height:i32 = 100;
     // code
     // TODO: put into matrix
-    let u = nalgebra::cross(&look, &up);
-    let v = up;
+    let u = na::cross(&look, &up);
+    let v = na::cross(&u, &look);
     let w = look;
+    let mat = Mat3::new(
+        u.x, v.x, look.x,
+        u.y, v.y, look.y,
+        u.z, v.z, look.z,
+    );
     let halfwidth  = (width  as f32) / 2.0;
     let halfheight = (height as f32) / 2.0;
     // render image
     for y in 0..height {
         for x in 0..width {
-            let xx = ((x as f32) - halfwidth)  / halfwidth;
-            let yy = ((y as f32) - halfheight) / halfheight;
-            let ray = Ray { origin: eye, direction: u * xx + v * yy + w * focus };
+            // transform to (-1, 1)
+            let pos = Vec3::new(
+                ((x as f32) - halfwidth)  / halfwidth,
+                ((y as f32) - halfheight) / halfheight,
+                focus
+            );
+            let ray = Ray { origin: eye, direction: mat * pos };
         }
     }
 }
