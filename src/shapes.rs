@@ -1,21 +1,12 @@
 extern crate nalgebra as na;
-use na::Inv;
-use na::ToHomogeneous;
-use na::FromHomogeneous;
-use na::Norm;
 
-use std::ops::Mul;
+use self::na::{Inv, Norm, Dot};
 
-type Pnt3 = na::Pnt3<f32>;
-type Pnt4 = na::Pnt4<f32>;
-type Vec3 = na::Vec3<f32>;
-type Vec4 = na::Vec4<f32>;
-type Mat3 = na::Mat3<f32>;
-type Mat4 = na::Mat4<f32>;
+use types::*;
 
-struct Ray {
-    origin: Pnt3,
-    direction: Vec3,
+pub struct Ray {
+    pub origin: Pnt3,
+    pub direction: Vec3,
 }
 
 impl Ray {
@@ -30,12 +21,12 @@ struct IntersectionResult {
 }
 
 trait Shape {
-    fn intersect(&self, ray: &Ray) -> IntersectionResult;
+    fn intersect(&self, ray: &Ray) -> Option<IntersectionResult>;
 }
 
-struct Sphere {
-    center: Pnt3,
-    radius: f32,
+pub struct Sphere {
+    pub center: Pnt3,
+    pub radius: f32,
 }
 
 impl Shape for Sphere {
@@ -50,11 +41,21 @@ impl Shape for Sphere {
         // c = (ox - cx)^2 + (oy - cy)^2 + (oz - cz)^2 - radius * radius = (origin - center).sqnorm() - radius * radius
         let ominusc = ray.origin - self.center;
         let a = ray.direction.sqnorm();
-        let b = 2 * ray.direction.dot(ominusc);
+        let b = 2.0 * ray.direction.dot(&ominusc);
         let c = ominusc.sqnorm() - self.radius * self.radius;
         // intersects iff b^2 - 4*a*c > 0
-        if (b * b - 4 * a * c > 0) {
-            Some(IntersectionResult { (-b - num::sqrt()) })
+        let discriminant = b * b - 4.0 * a * c;
+        if discriminant > 0.0 {
+            let dsqrt = discriminant.sqrt();
+            let t = (-b + (2.0 * dsqrt - b).signum() * dsqrt) / (2.0 * a);
+            if t > 0.0 {
+                Some(IntersectionResult {
+                    t: t,
+                    normal: (ray.cast(t) - self.center).normalize(),
+                })
+            } else {
+                None
+            }
         } else {
             None
         }

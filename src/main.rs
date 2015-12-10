@@ -1,12 +1,10 @@
 extern crate nalgebra as na;
+extern crate raytrace;
 
-type Pnt3 = na::Pnt3<f32>;
-type Vec3 = na::Vec3<f32>;
-type Mat3 = na::Mat3<f32>;
+use self::na::Norm;
 
-mod shapes;
-
-use shapes::Ray;
+use raytrace::shapes::{Ray, Sphere};
+use raytrace::types::*;
 
 fn main() {
     // camera parameters
@@ -21,7 +19,6 @@ fn main() {
     // TODO: put into matrix
     let u = na::cross(&look, &up);
     let v = na::cross(&u, &look);
-    let w = look;
     let mat = Mat3::new(
         u.x, v.x, look.x,
         u.y, v.y, look.y,
@@ -29,6 +26,8 @@ fn main() {
     );
     let halfwidth  = (width  as f32) / 2.0;
     let halfheight = (height as f32) / 2.0;
+    // test scene
+    let my_sphere = Sphere { center: Pnt3::new(0.0, 0.0, -5.0), radius: 1.0 };
     // render image
     for y in 0..height {
         for x in 0..width {
@@ -38,7 +37,7 @@ fn main() {
                 ((y as f32) - halfheight) / halfheight,
                 focus
             );
-            let ray = Ray { origin: eye, direction: mat * pos };
+            let ray = Ray { origin: eye, direction: (mat * pos).normalize() };
         }
     }
 }
