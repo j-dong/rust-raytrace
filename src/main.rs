@@ -1,11 +1,12 @@
 extern crate nalgebra as na;
 extern crate raytrace;
 
+use std::io::prelude::*;
 use std::fs::File;
 
-use self::na::Norm;
+use self::na::{Norm,Dot};
 
-use raytrace::shapes::{Ray, Sphere};
+use raytrace::shapes::{Ray, Sphere, Shape};
 use raytrace::types::*;
 
 fn main() {
@@ -15,8 +16,8 @@ fn main() {
     let up   = Vec3::new(0.0, 1.0, 0.0);
     let focus = 0.5f32;
     // image parameters
-    let width:i32  = 100;
-    let height:i32 = 100;
+    let width:u32  = 100;
+    let height:u32 = 100;
     // code
     // TODO: put into matrix
     let u = na::cross(&look, &up);
@@ -29,10 +30,10 @@ fn main() {
     let halfwidth  = (width  as f32) / 2.0;
     let halfheight = (height as f32) / 2.0;
     // test scene
-    let my_sphere = Sphere { center: Pnt3::new(0.0, 0.0, -5.0), radius: 1.0 };
+    let my_sphere = Sphere { center: Pnt3::new(0.0, 0.0, -2.0), radius: 1.0 };
     // file handle
-    let mut f = try!(File::create("out.bmp"));
-    let bytewidth = (3 * width + 3) & ~0x3;
+    let mut f = File::create("out.bmp").ok().expect("error creating out.bmp");
+    let bytewidth = (3 * width + 3) & 0xFFFFFFFC;
     let pasize = bytewidth * height; // size of pixel array
     let fsize = 14 + 40 + pasize;
     f.write(&[
@@ -65,7 +66,15 @@ fn main() {
         0x00u8, 0x00u8, 0x00u8, 0x00u8, // important colors
     ]);
     let black = [0u8, 0u8, 0u8];
-    let white = [255u8, 255u8, 255u8];
+    let mut white = [255u8, 255u8, 255u8];
+    let zeros = [0u8, 0u8, 0u8];
+    let padding = match width & 0x3 {
+        0 => &zeros[0..0], // perfect multiple
+        1 => &zeros[0..3], // remainder 1
+        2 => &zeros[0..2],
+        3 => &zeros[0..1],
+        _ => panic!("Result of width & 0x3 not 0, 1, 2, or 3"),
+    };
     // render image
     for y in 0..height {
         for x in 0..width {
@@ -76,14 +85,16 @@ fn main() {
                 focus
             );
             let ray = Ray { origin: eye, direction: (mat * pos).normalize() };
-            let color = match my_sphere.intersect(ray) {
-                Some(_) => &black,
-                None => &white,
+            match my_sphere.intersect(&ray) {
+                Some(result) => {
+                    let color = result.normal.dot(eye.as_vec()).abs();
+                    let colbyte = (color * 256.0) as u8;
+                    white[0] = colbyte;
+                    f.write(&white);
+                },
+                None => {f.write(&black);},
             }
-            f.write(color);
         }
-        for _ in 0..(bytewidth - 3 * width) {
-            f.write(&[0]);
-        }
+        f.write(padding);
     }
 }

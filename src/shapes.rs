@@ -15,12 +15,12 @@ impl Ray {
     }
 }
 
-struct IntersectionResult {
-    t: f32,
-    normal: Vec3,
+pub struct IntersectionResult {
+    pub t: f32,
+    pub normal: Vec3,
 }
 
-trait Shape {
+pub trait Shape {
     fn intersect(&self, ray: &Ray) -> Option<IntersectionResult>;
 }
 
@@ -47,14 +47,22 @@ impl Shape for Sphere {
         let discriminant = b * b - 4.0 * a * c;
         if discriminant > 0.0 {
             let dsqrt = discriminant.sqrt();
-            let t = (-b + (2.0 * dsqrt - b).signum() * dsqrt) / (2.0 * a);
+            let t = (-b - dsqrt) / (2.0 * a);
             if t > 0.0 {
                 Some(IntersectionResult {
                     t: t,
                     normal: (ray.cast(t) - self.center).normalize(),
                 })
             } else {
-                None
+                let t2 = (-b + dsqrt) / (2.0 * a);
+                if t2 > 0.0 {
+                    Some(IntersectionResult {
+                        t: t2,
+                        normal: (ray.cast(t2) - self.center).normalize(),
+                    })
+                } else {
+                    None
+                }
             }
         } else {
             None
