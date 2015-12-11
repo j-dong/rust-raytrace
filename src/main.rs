@@ -19,7 +19,6 @@ fn main() {
     let width:u32  = 100;
     let height:u32 = 100;
     // code
-    // TODO: put into matrix
     let u = na::cross(&look, &up);
     let v = na::cross(&u, &look);
     let mat = Mat3::new(
