@@ -75,6 +75,9 @@ fn main() {
         _ => panic!("Result of width & 0x3 not 0, 1, 2, or 3"),
     };
     // render image
+    // get some stats
+    let mut nearest = 1000.0f32;
+    let mut farthest = 0.0f32;
     for y in 0..height {
         for x in 0..width {
             // transform to (-1, 1)
@@ -86,6 +89,9 @@ fn main() {
             let ray = Ray { origin: eye, direction: (mat * pos).normalize() };
             match my_sphere.intersect(&ray) {
                 Some(result) => {
+                    let z = ray.cast(result.t).z;
+                    if (z < nearest) nearest = z;
+                    if (z > farthest) farthest = z;
                     let color = result.normal.dot(eye.as_vec()).abs();
                     let colbyte = (color * 256.0) as u8;
                     white[0] = colbyte;
@@ -96,4 +102,5 @@ fn main() {
         }
         f.write(padding);
     }
+    println!("Nearest z value: {}, farthest: {}", nearest, farthest);
 }
