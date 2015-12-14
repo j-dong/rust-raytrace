@@ -92,7 +92,7 @@ fn main() {
                     let z = ray.cast(result.t).z;
                     if (z < nearest) nearest = z;
                     if (z > farthest) farthest = z;
-                    let color = result.normal.dot(eye.as_vec()).abs();
+                    let color = result.normal.dot(look).abs();
                     let colbyte = (color * 256.0) as u8;
                     white[0] = colbyte;
                     f.write(&white);
