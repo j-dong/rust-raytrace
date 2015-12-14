@@ -10,7 +10,7 @@ pub struct Ray {
 }
 
 impl Ray {
-    fn cast(&self, t: f32) -> Pnt3 {
+    pub fn cast(&self, t: f32) -> Pnt3 {
         self.origin + self.direction * t
     }
 }

@@ -64,8 +64,8 @@ fn main() {
         0x00u8, 0x00u8, 0x00u8, 0x00u8, // no color palette
         0x00u8, 0x00u8, 0x00u8, 0x00u8, // important colors
     ]);
-    let black = [0u8, 0u8, 0u8];
-    let mut white = [255u8, 255u8, 255u8];
+    let bg = [0u8, 0u8, 0u8];
+    let mut fg = [255u8, 255u8, 255u8];
     let zeros = [0u8, 0u8, 0u8];
     let padding = match width & 0x3 {
         0 => &zeros[0..0], // perfect multiple
@@ -75,9 +75,7 @@ fn main() {
         _ => panic!("Result of width & 0x3 not 0, 1, 2, or 3"),
     };
     // render image
-    // get some stats
-    let mut nearest = 1000.0f32;
-    let mut farthest = 0.0f32;
+    let lightdir = -look;
     for y in 0..height {
         for x in 0..width {
             // transform to (-1, 1)
@@ -90,17 +88,16 @@ fn main() {
             match my_sphere.intersect(&ray) {
                 Some(result) => {
                     let z = ray.cast(result.t).z;
-                    if (z < nearest) nearest = z;
-                    if (z > farthest) farthest = z;
-                    let color = result.normal.dot(look).abs();
+                    let color = result.normal.dot(&lightdir).abs();
                     let colbyte = (color * 256.0) as u8;
-                    white[0] = colbyte;
-                    f.write(&white);
+                    fg[0] = colbyte;
+                    fg[1] = colbyte;
+                    fg[2] = colbyte;
+                    f.write(&fg);
                 },
-                None => {f.write(&black);},
+                None => {f.write(&bg);},
             }
         }
         f.write(padding);
     }
-    println!("Nearest z value: {}, farthest: {}", nearest, farthest);
 }
