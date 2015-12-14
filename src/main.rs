@@ -8,6 +8,7 @@ use self::na::{Norm,Dot};
 
 use raytrace::shapes::{Ray, Sphere, Shape};
 use raytrace::types::*;
+use raytrace::color::Color;
 
 fn main() {
     // camera parameters
@@ -64,8 +65,8 @@ fn main() {
         0x00u8, 0x00u8, 0x00u8, 0x00u8, // no color palette
         0x00u8, 0x00u8, 0x00u8, 0x00u8, // important colors
     ]);
-    let bg = [0u8, 0u8, 0u8];
-    let mut fg = [255u8, 255u8, 255u8];
+    let bg = Color::fromRGB(0.0, 0.0, 0.0);
+    let bg_col = bg.RGB();
     let zeros = [0u8, 0u8, 0u8];
     let padding = match width & 0x3 {
         0 => &zeros[0..0], // perfect multiple
@@ -87,15 +88,11 @@ fn main() {
             let ray = Ray { origin: eye, direction: (mat * pos).normalize() };
             match my_sphere.intersect(&ray) {
                 Some(result) => {
-                    let z = ray.cast(result.t).z;
-                    let color = result.normal.dot(&lightdir).abs();
-                    let colbyte = (color * 256.0) as u8;
-                    fg[0] = colbyte;
-                    fg[1] = colbyte;
-                    fg[2] = colbyte;
-                    f.write(&fg);
+                    let val = result.normal.dot(&lightdir).abs();
+                    let color = Color::fromRGB(val, val, val);
+                    f.write(&color.RGB());
                 },
-                None => {f.write(&bg);},
+                None => {f.write(&bg_col);},
             }
         }
         f.write(padding);
