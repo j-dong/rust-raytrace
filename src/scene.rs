@@ -1,6 +1,7 @@
 use types::*;
 use shapes::*;
 use color::*;
+use camera::*;
 
 use types::na::Norm;
 
@@ -40,4 +41,10 @@ impl Light for DirectionalLight {
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3 {
         self.direction
     }
+}
+
+struct Scene {
+    objects: Vec<Box<Object>>,
+    lights: Vec<Box<Light>>,
+    camera: Box<Camera>,
 }
