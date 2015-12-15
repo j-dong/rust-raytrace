@@ -6,6 +6,8 @@ use camera::*;
 use types::na::Norm;
 
 use std::boxed::Box;
+use std::option::Option;
+use std::iter::Iterator;
 
 struct Material {
     diffuse: Color,
@@ -47,4 +49,15 @@ struct Scene {
     objects: Vec<Box<Object>>,
     lights: Vec<Box<Light>>,
     camera: Box<Camera>,
+}
+
+pub struct SceneIntersectionResult<'a> {
+    object: &'a Object,
+    result: IntersectionResult,
+}
+
+impl Scene {
+    pub fn intersect(&self, ray: &Ray) -> Option<SceneIntersectionResult> {
+        self.objects.iter().filter_map(|o| o.bounds.intersect(ray).map( |r| SceneIntersectionResult { object: o, result: r })).min_by(|o| o.result.t)
+    }
 }
