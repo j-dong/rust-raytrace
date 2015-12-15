@@ -1,8 +1,5 @@
-extern crate nalgebra as na;
-
-use self::na::{Inv, Norm, Dot};
-
 use types::*;
+use types::na::{Inv, Norm, Dot};
 
 pub struct Ray {
     pub origin: Pnt3,

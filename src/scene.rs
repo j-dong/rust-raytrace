@@ -2,6 +2,8 @@ use types::*;
 use shapes::*;
 use color::*;
 
+use types::na::Norm;
+
 use std::boxed::Box;
 
 struct Material {
@@ -26,7 +28,7 @@ struct PointLight {
 
 impl Light for PointLight {
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3 {
-        Vec3::new(pt.x - self.location.x, pt.y - self.location.y, pt.z - self.location.z)
+        Vec3::new(pt.x - self.location.x, pt.y - self.location.y, pt.z - self.location.z).normalize()
     }
 }
 
