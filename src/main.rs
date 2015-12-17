@@ -65,8 +65,8 @@ fn main() {
         0x00u8, 0x00u8, 0x00u8, 0x00u8, // no color palette
         0x00u8, 0x00u8, 0x00u8, 0x00u8, // important colors
     ]);
-    let bg = Color::fromRGB(0.0, 0.0, 0.0);
-    let bg_col = bg.RGB();
+    let bg = Color::from_rgb(0.0, 0.0, 0.0);
+    let bg_col = bg.rgb();
     let zeros = [0u8, 0u8, 0u8];
     let padding = match width & 0x3 {
         0 => &zeros[0..0], // perfect multiple
@@ -89,8 +89,8 @@ fn main() {
             match my_sphere.intersect(&ray) {
                 Some(result) => {
                     let val = result.normal.dot(&lightdir).abs();
-                    let color = Color::fromRGB(val, val, val);
-                    f.write(&color.RGB());
+                    let color = Color::from_rgb(val, val, val);
+                    f.write(&color.rgb());
                 },
                 None => {f.write(&bg_col);},
             }

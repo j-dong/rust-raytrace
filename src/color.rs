@@ -55,11 +55,11 @@ fn clamp_color_val(val: f32) -> u8 {
 }
 
 impl Color {
-    pub fn fromRGB(r: f32, g: f32, b: f32) -> Color {
+    pub fn from_rgb(r: f32, g: f32, b: f32) -> Color {
         Color {r: r, g: g, b: b}
     }
 
-    pub fn RGB(&self) -> [u8; 3] {
+    pub fn rgb(&self) -> [u8; 3] {
         [clamp_color_val(self.r), clamp_color_val(self.g), clamp_color_val(self.b)]
     }
 }
