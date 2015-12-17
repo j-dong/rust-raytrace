@@ -1,5 +1,5 @@
 use types::*;
-use types::na::{Inv, Norm, Dot};
+use types::na::{Norm, Dot};
 
 /// A ray. A ray has an origin and a direction.
 pub struct Ray {

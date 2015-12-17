@@ -12,22 +12,22 @@ use std::cmp::Ordering;
 
 /// An object's material. A material is used to compute the color
 /// of an object when a ray hits it.
-struct Material {
+pub struct Material {
     /// Diffuse color of Lambertian reflectance.
-    diffuse: Color,
+    pub diffuse: Color,
 }
 
 /// An object in a scene. The `Object` struct contains everything
 /// necessary to render the object.
-struct Object {
+pub struct Object {
     /// The bounds of the object, which is used for ray intersection.
-    bounds: Box<Shape>,
+    pub bounds: Box<Shape>,
     /// The material of the object.
-    material: Material,
+    pub material: Material,
 }
 
 /// A light that can project rays onto an object.
-trait Light {
+pub trait Light {
     /// Get the light direction for lighting a specific point.
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3;
     /// The the shadow ray used to project back onto the light
@@ -38,8 +38,8 @@ trait Light {
 }
 
 /// A simple point light.
-struct PointLight {
-    location: Pnt3,
+pub struct PointLight {
+    pub location: Pnt3,
 }
 
 impl Light for PointLight {
@@ -49,18 +49,18 @@ impl Light for PointLight {
 }
 
 /// A simple directional light.
-struct DirectionalLight {
-    direction: Vec3,
+pub struct DirectionalLight {
+    pub direction: Vec3,
 }
 
 impl Light for DirectionalLight {
-    fn light_dir_for(&self, pt: &Pnt3) -> Vec3 {
+    fn light_dir_for(&self, _: &Pnt3) -> Vec3 {
         self.direction
     }
 }
 
 /// A scene with objects, lights, and a camera.
-struct Scene {
+pub struct Scene {
     /// The objects in the scene.
     pub objects: Vec<Box<Object>>,
     /// The lights in the scene.
