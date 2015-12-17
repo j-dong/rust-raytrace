@@ -1,9 +1,17 @@
 use std::ops::{Add, Sub, Mul, Div};
 
+/// A color which can be transformed into RGB components. Currently
+/// colors are stored as three `f32` RGB components.
+///
+/// All components are normally in the range [0, 1], but colors can
+/// go beyond that (e.g. when adding colors).
 #[derive(Clone, Copy, Default, PartialEq)]
 pub struct Color {
+    /// The red component of the color.
     pub r: f32,
+    /// The green component of the color.
     pub g: f32,
+    /// The blue component of the color.
     pub b: f32,
 }
 
@@ -55,10 +63,14 @@ fn clamp_color_val(val: f32) -> u8 {
 }
 
 impl Color {
+    /// Creates a color from RGB components. The resulting color
+    /// has components are that not clamped to [0, 1).
     pub fn from_rgb(r: f32, g: f32, b: f32) -> Color {
         Color {r: r, g: g, b: b}
     }
 
+    /// Get the RGB components as 3 bytes, useful for writing an
+    /// image.
     pub fn rgb(&self) -> [u8; 3] {
         [clamp_color_val(self.r), clamp_color_val(self.g), clamp_color_val(self.b)]
     }
