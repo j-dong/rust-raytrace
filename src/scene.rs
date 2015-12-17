@@ -8,6 +8,7 @@ use types::na::Norm;
 use std::boxed::Box;
 use std::option::Option;
 use std::iter::Iterator;
+use std::cmp::Ordering;
 
 struct Material {
     diffuse: Color,
@@ -56,8 +57,29 @@ pub struct SceneIntersectionResult<'a> {
     result: IntersectionResult,
 }
 
+#[derive(PartialEq, PartialOrd)]
+struct FloatNotNan(f32);
+
+impl FloatNotNan {
+    fn new(v: f32) -> Option<FloatNotNan> {
+        if v.is_nan() {
+            None
+        } else {
+            Some(FloatNotNan(v))
+        }
+    }
+}
+
+impl Eq for FloatNotNan {}
+
+impl Ord for FloatNotNan {
+    fn cmp(&self, other: &FloatNotNan) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
 impl Scene {
     pub fn intersect(&self, ray: &Ray) -> Option<SceneIntersectionResult> {
-        self.objects.iter().filter_map(|o| o.bounds.intersect(ray).map( |r| SceneIntersectionResult { object: o, result: r })).min_by(|o| o.result.t)
+        self.objects.iter().filter_map(|o| o.bounds.intersect(ray).map( |r| SceneIntersectionResult { object: o, result: r })).min_by_key(|o| FloatNotNan::new(o.result.t))
     }
 }
