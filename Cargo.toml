@@ -5,3 +5,12 @@ authors = ["James <dong.james.sept14@gmail.com>"]
 
 [dependencies]
 nalgebra = "^0.4.0"
+
+[lib]
+name = "libraytrace"
+path = "src/lib.rs"
+
+[[bin]]
+name = "raytrace"
+path = "src/main.rs"
+doc = false
