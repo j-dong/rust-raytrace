@@ -39,6 +39,7 @@ pub trait Light {
 
 /// A simple point light.
 pub struct PointLight {
+    /// The location of the light.
     pub location: Pnt3,
 }
 
@@ -50,6 +51,7 @@ impl Light for PointLight {
 
 /// A simple directional light.
 pub struct DirectionalLight {
+    /// The direction of the light.
     pub direction: Vec3,
 }
 
