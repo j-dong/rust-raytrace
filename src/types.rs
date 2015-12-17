@@ -2,11 +2,19 @@
 
 extern crate nalgebra as na;
 
+/// 2D point
 pub type Pnt2 = self::na::Pnt2<f32>;
+/// 3D point
 pub type Pnt3 = self::na::Pnt3<f32>;
+/// 4D point
 pub type Pnt4 = self::na::Pnt4<f32>;
+/// 2D vector
 pub type Vec2 = self::na::Vec2<f32>;
+/// 3D vector
 pub type Vec3 = self::na::Vec3<f32>;
+/// 4D vector
 pub type Vec4 = self::na::Vec4<f32>;
+/// 3x3 matrix
 pub type Mat3 = self::na::Mat3<f32>;
+/// 4x4 matrix
 pub type Mat4 = self::na::Mat4<f32>;

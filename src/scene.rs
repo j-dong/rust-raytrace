@@ -10,22 +10,34 @@ use std::option::Option;
 use std::iter::Iterator;
 use std::cmp::Ordering;
 
+/// An object's material. A material is used to compute the color
+/// of an object when a ray hits it.
 struct Material {
+    /// Diffuse color of Lambertian reflectance.
     diffuse: Color,
 }
 
+/// An object in a scene. The `Object` struct contains everything
+/// necessary to render the object.
 struct Object {
+    /// The bounds of the object, which is used for ray intersection.
     bounds: Box<Shape>,
+    /// The material of the object.
     material: Material,
 }
 
+/// A light that can project rays onto an object.
 trait Light {
+    /// Get the light direction for lighting a specific point.
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3;
+    /// The the shadow ray used to project back onto the light
+    /// to see if it intersects any objects on the way there.
     fn shadow_ray_for(&self, pt: &Pnt3) -> Ray {
         Ray { origin: pt.clone(), direction: -self.light_dir_for(pt) }
     }
 }
 
+/// A simple point light.
 struct PointLight {
     location: Pnt3,
 }
@@ -36,6 +48,7 @@ impl Light for PointLight {
     }
 }
 
+/// A simple directional light.
 struct DirectionalLight {
     direction: Vec3,
 }
@@ -46,15 +59,23 @@ impl Light for DirectionalLight {
     }
 }
 
+/// A scene with objects, lights, and a camera.
 struct Scene {
-    objects: Vec<Box<Object>>,
-    lights: Vec<Box<Light>>,
-    camera: Box<Camera>,
+    /// The objects in the scene.
+    pub objects: Vec<Box<Object>>,
+    /// The lights in the scene.
+    pub lights: Vec<Box<Light>>,
+    /// The camera of the scene.
+    pub camera: Box<Camera>,
 }
 
+/// Intersection result of a scene, containing the object it hit.
 pub struct SceneIntersectionResult<'a> {
-    object: &'a Object,
-    result: IntersectionResult,
+    /// The object the ray hit.
+    pub object: &'a Object,
+    /// The `IntersectionResult` returned by the object's `intersect`
+    /// method.
+    pub result: IntersectionResult,
 }
 
 #[derive(PartialEq, PartialOrd)]
@@ -79,6 +100,8 @@ impl Ord for FloatNotNan {
 }
 
 impl Scene {
+    /// Intersect a ray with the scene, returning a result which
+    /// contains the `intersect` result and the object it hit.
     pub fn intersect(&self, ray: &Ray) -> Option<SceneIntersectionResult> {
         self.objects.iter().filter_map(|o| o.bounds.intersect(ray).map( |r| SceneIntersectionResult { object: o, result: r })).min_by_key(|o| FloatNotNan::new(o.result.t))
     }

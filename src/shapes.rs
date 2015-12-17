@@ -1,28 +1,44 @@
 use types::*;
 use types::na::{Inv, Norm, Dot};
 
+/// A ray. A ray has an origin and a direction.
 pub struct Ray {
+    /// The origin of the ray.
     pub origin: Pnt3,
+    /// The direction of the ray. Should be normalized most of the
+    /// time.
     pub direction: Vec3,
 }
 
 impl Ray {
+    /// Casts the ray. `t` is the length of the casted segment.
+    /// Returns the point `t` away from the ray's origin in the
+    /// ray's direction (assuming the direction is normalized).
     pub fn cast(&self, t: f32) -> Pnt3 {
         self.origin + self.direction * t
     }
 }
 
+/// The result of an intersection between a shape and a ray.
 pub struct IntersectionResult {
+    /// The `t` value at which the ray hits the shape.
     pub t: f32,
+    /// The normal of the shape at the point of intersection.
     pub normal: Vec3,
 }
 
+/// A shape that can be intersected with a ray.
 pub trait Shape {
+    /// Intersect the ray with a shape, and return the closest
+    /// result that is in the direction of the ray.
     fn intersect(&self, ray: &Ray) -> Option<IntersectionResult>;
 }
 
+/// A sphere. A sphere has a center and a radius.
 pub struct Sphere {
+    /// The center of the sphere.
     pub center: Pnt3,
+    /// The radius of the sphere.
     pub radius: f32,
 }
 
