@@ -61,6 +61,6 @@ impl SimplePerspectiveCamera {
 
 impl Camera for SimplePerspectiveCamera {
     fn project(&self, position: &Pnt2) -> Ray {
-        Ray { origin: self.position, direction: (self.matrix * position.as_vec().to_homogeneous()).normalize() }
+        Ray { origin: self.position, direction: (self.matrix * Vec3::new(position.x, position.y, 1.0)).normalize() }
     }
 }
