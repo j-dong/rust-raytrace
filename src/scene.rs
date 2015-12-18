@@ -76,7 +76,7 @@ impl Light for DirectionalLight {
 /// A scene with objects, lights, and a camera.
 pub struct Scene {
     /// The objects in the scene.
-    pub objects: Vec<Box<Object>>,
+    pub objects: Vec<Object>,
     /// The lights in the scene.
     pub lights: Vec<Box<Light>>,
     /// The camera of the scene.
