@@ -21,6 +21,8 @@ pub struct Color {
     pub b: f32,
 }
 
+pub const BLACK: Color = Color { r: 0.0, g: 0.0, b: 0.0 };
+
 impl Add for Color {
     type Output = Color;
     fn add(self, other: Color) -> Color {
@@ -83,7 +85,14 @@ impl Color {
 
     /// Get the components of the image in BGR as 3 bytes, useful
     /// for writing an image.
-    pub fn bgr(&self) -> [u8, 3] {
+    pub fn bgr(&self) -> [u8; 3] {
         [clamp_color_val(self.b), clamp_color_val(self.g), clamp_color_val(self.r)]
+    }
+
+    /// Some indication of significance; if 0, unsignificant; if
+    /// greater than 0, significant. Used to disable shading when
+    /// unnecessary.
+    pub fn significance(&self) -> f32 {
+        self.r + self.g + self.b
     }
 }

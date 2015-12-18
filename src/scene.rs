@@ -42,6 +42,11 @@ pub trait Light {
     fn shadow_ray_for(&self, pt: &Pnt3) -> Ray {
         Ray { origin: pt.clone(), direction: -self.light_dir_for(pt) }
     }
+    /// Combination of light direction and shadow ray.
+    fn light_shadow_for(&self, pt: &Pnt3) -> (Vec3, Ray) {
+        let dir = self.light_dir_for(pt);
+        (dir, Ray { origin: pt.clone(), direction: -dir })
+    }
 }
 
 /// A simple point light.

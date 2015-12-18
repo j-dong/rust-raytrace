@@ -1,14 +1,14 @@
 extern crate nalgebra as na;
-extern crate raytrace;
+extern crate libraytrace;
 
 use std::io::prelude::*;
 use std::fs::File;
 
 use self::na::{Norm,Dot};
 
-use raytrace::shapes::{Ray, Sphere, Shape};
-use raytrace::types::*;
-use raytrace::color::Color;
+use libraytrace::shapes::{Ray, Sphere, Shape};
+use libraytrace::types::*;
+use libraytrace::color::Color;
 
 fn main() {
     // camera parameters
