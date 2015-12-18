@@ -1,3 +1,8 @@
+//! Shapes that can collide with rays
+//!
+//! This module contains various shapes that have a collision
+//! test with the `Ray` struct, which is also in here. These
+//! shapes are used to model how an object looks and reflects light.
 use types::*;
 use types::na::{Norm, Dot};
 

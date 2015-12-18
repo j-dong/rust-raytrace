@@ -1,3 +1,10 @@
+//! The scene and the objects in them
+//!
+//! This module contains the `Scene` struct and the objects it
+//! contains. These classes are used to model the objects that
+//! interact with the light from light sources, the light sources
+//! themselves, and how the light interacts with the objects.
+
 use types::*;
 use shapes::*;
 use color::*;

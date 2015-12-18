@@ -1,3 +1,9 @@
+//! Struct representing color
+//!
+//! This module contains the `Color` struct representing the light
+//! that is transferred by light sources. It is transformed into
+//! RGB at the end of the rendering process.
+
 use std::ops::{Add, Sub, Mul, Div};
 
 /// A color which can be transformed into RGB components. Currently

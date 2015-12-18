@@ -1,3 +1,8 @@
+//! Projection types
+//!
+//! Cameras represent ways to project a point on the image into the
+//! scene as a ray.
+
 use types::*;
 use shapes::*;
 
