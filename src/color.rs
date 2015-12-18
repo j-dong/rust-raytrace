@@ -80,4 +80,10 @@ impl Color {
     pub fn rgb(&self) -> [u8; 3] {
         [clamp_color_val(self.r), clamp_color_val(self.g), clamp_color_val(self.b)]
     }
+
+    /// Get the components of the image in BGR as 3 bytes, useful
+    /// for writing an image.
+    pub fn bgr(&self) -> [u8, 3] {
+        [clamp_color_val(self.b), clamp_color_val(self.g), clamp_color_val(self.r)]
+    }
 }

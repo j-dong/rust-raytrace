@@ -66,7 +66,7 @@ fn main() {
         0x00u8, 0x00u8, 0x00u8, 0x00u8, // important colors
     ]);
     let bg = Color::from_rgb(0.0, 0.0, 0.0);
-    let bg_col = bg.rgb();
+    let bg_col = bg.bgr();
     let zeros = [0u8, 0u8, 0u8];
     let padding = match width & 0x3 {
         0 => &zeros[0..0], // perfect multiple
@@ -90,7 +90,7 @@ fn main() {
                 Some(result) => {
                     let val = result.normal.dot(&lightdir).abs();
                     let color = Color::from_rgb(val, val, val);
-                    f.write(&color.rgb());
+                    f.write(&color.bgr());
                 },
                 None => {f.write(&bg_col);},
             }
