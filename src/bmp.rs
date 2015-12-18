@@ -7,7 +7,7 @@ use std::io::prelude::*;
 use std::fs::File;
 
 /// Write BMP file header, returning the length of a row in bytes
-fn write_header(f: &mut File, width: u32, height: u32) -> io::Result<u32> {
+pub fn write_header(f: &mut File, width: u32, height: u32) -> io::Result<u32> {
     let bytewidth = (3 * width + 3) & 0xFFFFFFFC;
     let pasize = bytewidth * height; // size of pixel array
     let fsize = 14 + 40 + pasize;

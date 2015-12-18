@@ -32,10 +32,11 @@ pub fn background_color(ray: &Ray) -> Color {
 
 /// Trace a ray to an object or nothing and return the result of
 /// color computation.
-pub fn raytrace(scene: &Scene, ray: &Ray) -> Color {
+pub fn raytrace(scene: &Scene, pos: &Pnt2) -> Color {
     // find the object that the ray hits and compute the color
-    match scene.intersect(ray) {
-        Some(result) => intersection_color(scene, &result, ray),
-        None => background_color(ray),
+    let ray = scene.camera.project(pos);
+    match scene.intersect(&ray) {
+        Some(result) => intersection_color(scene, &result, &ray),
+        None => background_color(&ray),
     }
 }
