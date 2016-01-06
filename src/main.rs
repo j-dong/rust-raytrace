@@ -1,5 +1,3 @@
-#![feature(clone_from_slice, convert)]
-
 extern crate nalgebra as na;
 extern crate libraytrace;
 
@@ -64,8 +62,8 @@ fn main() {
                 ((y as f32) - halfheight) / halfheight,
             );
             let color = raytrace::raytrace(&scene, &pos);
-            (&mut row[x as usize * 3 .. x as usize * 3 + 3]).clone_from_slice(&color.bgr());
+            color.write_bgr(&mut row, x as usize);
         }
-        file_handle.write_all(row.as_slice()).ok().expect("error writing row");
+        file_handle.write_all(&row[..]).ok().expect("error writing row");
     }
 }

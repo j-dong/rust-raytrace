@@ -89,6 +89,13 @@ impl Color {
         [clamp_color_val(self.b), clamp_color_val(self.g), clamp_color_val(self.r)]
     }
 
+    /// Write this color to the ith position in the row buffer.
+    pub fn write_bgr(&self, buf: &mut Vec<u8>, i: usize) {
+        buf[i * 3]     = clamp_color_val(self.b);
+        buf[i * 3 + 1] = clamp_color_val(self.g);
+        buf[i * 3 + 2] = clamp_color_val(self.r);
+    }
+
     /// Some indication of significance; if 0, unsignificant; if
     /// greater than 0, significant. Used to disable shading when
     /// unnecessary.

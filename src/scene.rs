@@ -17,6 +17,9 @@ use std::option::Option;
 use std::iter::Iterator;
 use std::cmp::Ordering;
 
+#[cfg(not(nightly))]
+use std::iter::FilterMap;
+
 /// An object's material. A material is used to compute the color
 /// of an object when a ray hits it.
 pub struct Material {
@@ -110,6 +113,41 @@ impl Eq for FloatNotNan {}
 impl Ord for FloatNotNan {
     fn cmp(&self, other: &FloatNotNan) -> Ordering {
         self.partial_cmp(other).unwrap()
+    }
+}
+
+// following copied from Rust source
+#[cfg(not(nightly))]
+#[inline]
+fn select_fold1<I,B, FProj, FCmp>(mut it: I,
+                                  mut f_proj: FProj,
+                                  mut f_cmp: FCmp) -> Option<(B, I::Item)>
+    where I: Iterator,
+          FProj: FnMut(&I::Item) -> B,
+          FCmp: FnMut(&B, &I::Item, &B, &I::Item) -> bool {
+    it.next().map(|mut sel| {
+        let mut sel_p = f_proj(&sel);
+
+        for x in it {
+            let x_p = f_proj(&x);
+            if f_cmp(&sel_p,  &sel, &x_p, &x) {
+                sel = x;
+                sel_p = x_p;
+            }
+        }
+        (sel_p, sel)
+    })
+}
+#[cfg(not(nightly))]
+trait HackMin {
+    type Item;
+    fn min_by_key<B, F>(self, f: F) -> Option<Self::Item> where F: FnMut(&Self::Item) -> B, B: Ord;
+}
+#[cfg(not(nightly))]
+impl<B, I, F> HackMin for FilterMap<I, F> where F: FnMut(I::Item) -> Option<B>, I: Iterator {
+    type Item = B;
+    fn min_by_key<BB: Ord, FF>(self, f: FF) -> Option<Self::Item> where Self: Sized, FF: FnMut(&Self::Item) -> BB {
+        select_fold1(self, f, |x_p, _, y_p, _| x_p > y_p).map(|(_, x)| x)
     }
 }
 

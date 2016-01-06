@@ -6,6 +6,9 @@ authors = ["James <dong.james.sept14@gmail.com>"]
 [dependencies]
 nalgebra = "^0.4.0"
 
+[features]
+nightly = []
+
 [lib]
 name = "libraytrace"
 path = "src/lib.rs"
