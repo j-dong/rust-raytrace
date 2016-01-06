@@ -19,8 +19,8 @@ pub fn intersection_color(scene: &Scene, result: &SceneIntersectionResult, ray: 
     let pt = ray.cast(result.result.t);
     for light in &scene.lights {
         if result.object.material.diffuse.significance() > 0.0 {
-            let (ldir, sray) = light.light_shadow_for(&pt);
-            res = res + result.object.material.diffuse * dot(&ldir, &result.result.normal);
+            let (ldir, sray) = light.model.light_shadow_for(&pt);
+            res = res + result.object.material.diffuse * light.color * dot(&ldir, &result.result.normal);
         }
     }
     res

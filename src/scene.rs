@@ -37,7 +37,7 @@ pub struct Object {
 }
 
 /// A light that can project rays onto an object.
-pub trait Light {
+pub trait LightModel {
     /// Get the light direction for lighting a specific point.
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3;
     /// The the shadow ray used to project back onto the light
@@ -52,13 +52,21 @@ pub trait Light {
     }
 }
 
+/// A light that can project rays of a color onto an object.
+pub struct Light {
+    /// A model for the geometry of the light, used to project rays.
+    pub model: Box<LightModel>,
+    /// The color of the light.
+    pub color: Color,
+}
+
 /// A simple point light.
 pub struct PointLight {
     /// The location of the light.
     pub location: Pnt3,
 }
 
-impl Light for PointLight {
+impl LightModel for PointLight {
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3 {
         Vec3::new(pt.x - self.location.x, pt.y - self.location.y, pt.z - self.location.z).normalize()
     }
@@ -70,7 +78,7 @@ pub struct DirectionalLight {
     pub direction: Vec3,
 }
 
-impl Light for DirectionalLight {
+impl LightModel for DirectionalLight {
     fn light_dir_for(&self, _: &Pnt3) -> Vec3 {
         self.direction
     }
@@ -81,7 +89,7 @@ pub struct Scene {
     /// The objects in the scene.
     pub objects: Vec<Object>,
     /// The lights in the scene.
-    pub lights: Vec<Box<Light>>,
+    pub lights: Vec<Light>,
     /// The camera of the scene.
     pub camera: Box<Camera>,
 }

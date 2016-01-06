@@ -35,9 +35,12 @@ fn main() {
             },
         ),
         lights: vec!(
-            Box::new(DirectionalLight {
-                direction: -look,
-            }),
+            Light {
+                model: Box::new(DirectionalLight {
+                    direction: -look,
+                }),
+                color: Color::from_rgb(1.0, 1.0, 1.0),
+            },
         ),
         camera: Box::new(
             SimplePerspectiveCamera::new(&eye, &look, &up, im_dist)
