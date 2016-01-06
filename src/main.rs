@@ -31,6 +31,7 @@ fn main() {
                 }),
                 material: Material {
                     diffuse: Color::from_rgb(1.0, 1.0, 1.0),
+                    reflect: Color::from_rgb(0.2, 0.2, 0.2),
                 },
             },
         ),
@@ -64,7 +65,7 @@ fn main() {
                 ((x as f32) - halfwidth)  / halfwidth,
                 ((y as f32) - halfheight) / halfheight,
             );
-            let color = raytrace::raytrace(&scene, &pos);
+            let color = raytrace::raytrace(&scene, &pos, 1.0);
             color.write_bgr(&mut row, x as usize);
         }
         file_handle.write_all(&row[..]).ok().expect("error writing row");

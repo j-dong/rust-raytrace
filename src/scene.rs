@@ -25,6 +25,8 @@ use std::iter::FilterMap;
 pub struct Material {
     /// Diffuse color of Lambertian reflectance.
     pub diffuse: Color,
+    /// Color of mirror reflectance.
+    pub reflect: Color,
 }
 
 /// An object in a scene. The `Object` struct contains everything
