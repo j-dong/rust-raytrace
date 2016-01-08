@@ -11,8 +11,11 @@ use libraytrace::camera::*;
 use libraytrace::color::Color;
 use libraytrace::raytrace;
 use libraytrace::bmp;
+use libraytrace::serialize;
 
 fn main() {
+    serialize::print_tokens("hello: world");
+    return;
     // camera parameters
     let eye  = Pnt3::new(0.0, 0.0, 0.0);
     let look = Vec3::new(0.0, 0.0, -1.0);
