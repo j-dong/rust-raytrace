@@ -3,10 +3,10 @@
 //! Currently only deserializes.
 
 use std::str::Chars;
-use std::iter::Iterator;
+use std::iter::{Iterator, Peekable};
 
 struct Tokenizer {
-    iter: Chars,
+    iter: Peekable<Chars>,
 }
 
 enum Token {
@@ -15,6 +15,15 @@ enum Token {
     LBrace(),
     RBrace(),
     Colon(),
+}
+
+fn skip_while<E, I: Iterator<E>>(&mut iter: Peekable<I>, fun: F) where F: Fn(&E) -> bool {
+    while match iter.peek() {
+        None => false,
+        Some(e) => fun(e)
+    } {
+        iter.next();
+    }
 }
 
 impl Iterator<Token> for Tokenizer {
