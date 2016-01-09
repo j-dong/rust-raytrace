@@ -15,28 +15,31 @@ fn skip_while<I: Iterator, F>(iter: &mut Peekable<I>, fun: F) where F: Fn(&I::It
     }
 }
 
-struct TakeWhile<'a, I: Iterator + 'a> {
+struct TakeWhile<'a, I: Iterator + 'a, F: Fn(&I::Item) -> bool> {
     iter: &'a mut Peekable<I>,
+    fun: F,
 }
 
-impl<'a, I: Iterator> Iterator for TakeWhile<'a, I> where I::Item: Copy {
+impl<'a, I: Iterator, F: Fn(&I::Item) -> bool> Iterator for TakeWhile<'a, I, F> where I::Item: Copy {
     type Item = I::Item;
 
     #[inline]
     fn next(&mut self) -> Option<I::Item> {
-        match self.iter.peek() {
-            None => None,
-            Some(e) => {
+        while let Some(&el) = self.iter.peek() {
+            if (self.fun)(&el) {
                 self.iter.next();
-                Some(*e)
+                return Some(el)
+            } else {
+                return None
             }
         }
+        None
     }
 }
 
 #[inline]
-fn take_while<'a, I: Iterator, F>(iter: &'a mut Peekable<I>, fun: F) -> TakeWhile<'a, I> where F: Fn(&I::Item) -> bool {
-    TakeWhile { iter: iter }
+fn take_while<'a, I: Iterator, F>(iter: &'a mut Peekable<I>, fun: F) -> TakeWhile<'a, I, F> where F: Fn(&I::Item) -> bool {
+    TakeWhile { iter: iter, fun: fun }
 }
 
 #[derive(Debug)]
@@ -58,21 +61,25 @@ impl<'a> Iterator for Tokenizer<'a> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
-        let ch = self.iter.peek();
-        match ch {
-            Some(c) => match *c {
-                '{' => Some(Token::LBrace),
-                '}' => Some(Token::RBrace),
-                '[' => Some(Token::LBracket),
-                ']' => Some(Token::RBracket),
-                ':' => Some(Token::Colon),
-                'A' ... 'Z' | 'a' ... 'z' | '_' => Some(Token::Identifier(take_while(&mut self.iter, |c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' => true, _ => false}}).collect())),
-                _ => match f32::from_str(&take_while(&mut self.iter, |c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' => true, _ => false}}).collect::<String>()) {
-                    Ok(e) => Some(Token::Number(e)),
-                    Err(_) => None
-                },
+        let c = {
+            let ch = self.iter.peek();
+            match ch {
+                Some(c) => *c,
+                None => return None,
+            }
+        };
+        self.iter.next();
+        match c {
+            '{' => Some(Token::LBrace),
+            '}' => Some(Token::RBrace),
+            '[' => Some(Token::LBracket),
+            ']' => Some(Token::RBracket),
+            ':' => Some(Token::Colon),
+            'A' ... 'Z' | 'a' ... 'z' | '_' => Some(Token::Identifier(take_while(&mut self.iter, |c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' => true, _ => false}}).collect())),
+            _ => match f32::from_str(&take_while(&mut self.iter, |c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' => true, _ => false}}).collect::<String>()) {
+                Ok(e) => Some(Token::Number(e)),
+                Err(_) => None
             },
-            None => None
         }
     }
 }
