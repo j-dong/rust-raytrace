@@ -3,6 +3,8 @@
 //! Currently only deserializes.
 
 use std::str::{Chars, FromStr};
+use std::fmt;
+use std::error::Error;
 use std::iter::{Iterator, Peekable};
 
 #[derive(Copy, Clone, Debug)]
@@ -24,6 +26,12 @@ impl Location {
     fn set(&mut self, other: &Location) {
         self.row = other.row;
         self.col = other.col;
+    }
+}
+
+impl fmt::Display for Location {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}:{}", self.row, self.col)
     }
 }
 
@@ -174,14 +182,59 @@ enum Token {
     Comma,
 }
 
+#[derive(Debug)]
+enum SyntaxErrorType {
+    InvalidToken,
+    InvalidNumber { num: String, err: <f32 as FromStr>::Err },
+}
+
+impl fmt::Display for SyntaxErrorType {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            SyntaxErrorType::InvalidToken => write!(fmt, "invalid token"),
+            SyntaxErrorType::InvalidNumber { num: ref num, err: _ } => write!(fmt, "invalid number: {}", num),
+        }
+    }
+}
+
+#[derive(Debug)]
+struct SyntaxError {
+    etype: SyntaxErrorType,
+    location: Location,
+}
+
+impl fmt::Display for SyntaxError {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{}: {}", self.location, self.etype)
+    }
+}
+
+impl Error for SyntaxError {
+    fn description(&self) -> &str {
+        match self.etype {
+            SyntaxErrorType::InvalidToken => "invalid token",
+            SyntaxErrorType::InvalidNumber { num: _, err: _ } => "invalid number",
+        }
+    }
+
+    fn cause(&self) -> Option<&Error> {
+        match self.etype {
+            SyntaxErrorType::InvalidNumber { num: _, err: ref e } => Some(e),
+            _ => None
+        }
+    }
+}
+
 struct Tokenizer<'a> {
     acceptor: Acceptor<Chars<'a>>,
+    error: Option<SyntaxError>,
 }
 
 impl<'a> Iterator for Tokenizer<'a> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
+        if self.error.is_some() { return None }
         self.acceptor.skip_while(|c: &char| {c.is_whitespace()});
         let c = {
             match self.acceptor.peek() {
@@ -208,15 +261,22 @@ impl<'a> Iterator for Tokenizer<'a> {
                         self.acceptor.skip(); // discard *
                         if let Some('/') = self.acceptor.take() {break}
                     }},
-                    _ => return None
+                    _ => {
+                        self.error = Some(SyntaxError { etype: SyntaxErrorType::InvalidToken, location: self.acceptor.iter.location });
+                        return None
+                    }
                 }
                 self.next()
             },
             'A' ... 'Z' | 'a' ... 'z' | '_' => Some(Token::Identifier(self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' => true, _ => false}}).collect())),
-            _ => match f32::from_str(&self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' | '.' | '-' | '+' => true, _ => false}}).collect::<String>()) {
-                Ok(e) => Some(Token::Number(e)),
-                Err(_) => None
+            '0' ... '9' | '.' | '-' | '+' => {
+                let num = self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' | '.' | '-' | '+' => true, _ => false}}).collect::<String>();
+                match f32::from_str(&num) {
+                    Ok(e) => Some(Token::Number(e)),
+                    Err(e) => { self.error = Some(SyntaxError { etype: SyntaxErrorType::InvalidNumber { num: num, err: e }, location: self.acceptor.iter.location }); None }
+                }
             },
+            _ => { self.error = Some(SyntaxError { etype: SyntaxErrorType::InvalidToken, location: self.acceptor.iter.location }); None }
         }
     }
 }
@@ -226,7 +286,12 @@ pub fn deserialize(text: &str) {
 }
 
 pub fn print_tokens(text: &str) {
-    for tok in (Tokenizer { acceptor: Acceptor { iter: LL1::new(text.chars()) } }) {
+    let mut tokenizer = Tokenizer { acceptor: Acceptor { iter: LL1::new(text.chars()) }, error: None };
+    for tok in &mut tokenizer {
         println!("{:?}", tok);
+    }
+    if let Some(err) = tokenizer.error {
+        println!("There was an error:");
+        println!("{}", err);
     }
 }

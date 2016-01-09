@@ -48,6 +48,12 @@ fn main() {
         ]
         // camera is complicated
     }");
+    serialize::print_tokens("
+    testing error:
+    // the / character is unhandled
+    // ! isn't a thing
+    0... is an invalid number
+    ");
     return;
     // camera parameters
     let eye  = Pnt3::new(0.0, 0.0, 0.0);
