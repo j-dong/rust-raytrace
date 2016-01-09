@@ -14,7 +14,40 @@ use libraytrace::bmp;
 use libraytrace::serialize;
 
 fn main() {
-    serialize::print_tokens("hello:world");
+    serialize::print_tokens("hello: world // whoo
+                            hello # whoo
+                            bye /*
+                                   test
+                                   test
+                                   */ free
+                            /* */ /* */ //
+
+
+                            aaa
+    // serious test now
+    {
+        objects: [
+            {
+                bounds: Sphere {
+                    center: (0.0, 0.0, -2.0)
+                    radius: 1.0
+                }
+                material: {
+                    diffuse: (1.0, 1.0, 1.0)
+                    reflect: (0.2, 0.2, 0.2)
+                }
+            }
+        ]
+        lights: [
+            {
+                model: DirectionalLight {
+                    direction: (0.0, 0.0, 1.0)
+                }
+                color: (1.0, 1.0, 1.0)
+            }
+        ]
+        // camera is complicated
+    }");
     return;
     // camera parameters
     let eye  = Pnt3::new(0.0, 0.0, 0.0);
