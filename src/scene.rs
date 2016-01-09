@@ -17,7 +17,7 @@ use std::option::Option;
 use std::iter::Iterator;
 use std::cmp::Ordering;
 
-#[cfg(not(nightly))]
+#[cfg(not(feature = "nightly"))]
 use std::iter::FilterMap;
 
 /// An object's material. A material is used to compute the color
@@ -127,7 +127,7 @@ impl Ord for FloatNotNan {
 }
 
 // following copied from Rust source
-#[cfg(not(nightly))]
+#[cfg(not(feature = "nightly"))]
 #[inline]
 fn select_fold1<I,B, FProj, FCmp>(mut it: I,
                                   mut f_proj: FProj,
@@ -148,12 +148,12 @@ fn select_fold1<I,B, FProj, FCmp>(mut it: I,
         (sel_p, sel)
     })
 }
-#[cfg(not(nightly))]
+#[cfg(not(feature = "nightly"))]
 trait HackMin {
     type Item;
     fn min_by_key<B, F>(self, f: F) -> Option<Self::Item> where F: FnMut(&Self::Item) -> B, B: Ord;
 }
-#[cfg(not(nightly))]
+#[cfg(not(feature = "nightly"))]
 impl<B, I, F> HackMin for FilterMap<I, F> where F: FnMut(I::Item) -> Option<B>, I: Iterator {
     type Item = B;
     fn min_by_key<BB: Ord, FF>(self, f: FF) -> Option<Self::Item> where Self: Sized, FF: FnMut(&Self::Item) -> BB {
