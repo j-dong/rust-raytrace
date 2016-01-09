@@ -3,16 +3,66 @@
 //! Currently only deserializes.
 
 use std::str::{Chars, FromStr};
+use std::fmt::{Display, Formatter};
+use std::fmt::Error as FmtError;
 use std::iter::{Iterator, Peekable};
 
-struct Tracker<I: Iterator> {
-    iter: I,
+trait Trackable {}
+impl<I> Trackable for I where I: Iterator<Item = char> {}
+
+#[derive(Copy, Clone, Debug)]
+struct Location {
     row: usize,
     col: usize,
 }
 
-struct Acceptor<I: Iterator> {
+impl Display for Location {
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), FmtError> {
+        write!(fmt, "{}:{}", self.row, self.col)
+    }
+}
+
+impl Location {
+    fn newline(&mut self) {
+        self.row += 1;
+        self.col = 1;
+    }
+    fn next(&mut self) {
+        self.col += 1;
+    }
+}
+
+struct Tracker<T: Trackable> {
+    tracked: T,
+    loc: Location,
+}
+
+impl<T: Trackable> Tracker<T> {
+    #[inline]
+    fn new(tracked: T) -> Tracker<T> {
+        Tracker {tracked: tracked, loc: Location {row: 1, col: 1}}
+    }
+}
+
+impl<I: Iterator<Item = char> + Trackable> Iterator for Tracker<I> {
+    type Item = (char, Location);
+
+    #[inline]
+    fn next(&mut self) -> Option<(char, Location)> {
+        if let Some(ret) = self.tracked.next() {
+            if let '\n' = ret {
+                self.loc.newline();
+            } else {
+                self.loc.next();
+            }
+            Some((ret, self.loc))
+        } else { None }
+    }
+}
+
+struct Acceptor<J, I: Iterator<Item = (J, Location)>> {
     iter: Peekable<I>,
+    location: Location,
 }
 
 #[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
@@ -21,7 +71,7 @@ struct TakeWhile<'a, I: Iterator + 'a, F: Fn(&I::Item) -> bool> {
     fun: F,
 }
 
-impl<'a, I: Iterator, F: Fn(&I::Item) -> bool> Iterator for TakeWhile<'a, I, F> where I::Item: Copy {
+impl<'a, I: Iterator, F: Fn(&I::Item) -> bool> Iterator for TakeWhile<'a, I, F> {
     type Item = I::Item;
 
     #[inline]
@@ -34,15 +84,19 @@ impl<'a, I: Iterator, F: Fn(&I::Item) -> bool> Iterator for TakeWhile<'a, I, F> 
     }
 }
 
-impl<I: Iterator> Acceptor<I> {
+impl<J, I: Iterator<Item = (J, Location)>> Acceptor<J, I> {
     #[inline]
-    fn take(&mut self) -> Option<I::Item> { self.iter.next() }
+    fn take(&mut self) -> Option<J> {
+        self.iter.next().and_then(|(a, b)| { self.location = b; Some(a) })
+    }
 
     #[inline]
-    fn peek(&mut self) -> Option<&I::Item> { self.iter.peek() }
+    fn peek(&mut self) -> Option<&J> {
+        self.iter.peek().and_then(|t| { self.location = t.1; Some(&t.0) })
+    }
 
     #[inline]
-    fn accept<F>(&mut self, fun: F) -> Option<I::Item> where F: Fn(&I::Item) -> bool {
+    fn accept<F>(&mut self, fun: F) -> Option<J> where F: Fn(&J) -> bool {
         if match self.peek() { Some(e) => fun(e), None => false } {
             self.take()
         } else {
@@ -54,7 +108,7 @@ impl<I: Iterator> Acceptor<I> {
     fn skip(&mut self) -> bool { self.take().is_some() }
 
     #[inline]
-    fn skip_if<F>(&mut self, fun: F) -> bool where F: Fn(&I::Item) -> bool {
+    fn skip_if<F>(&mut self, fun: F) -> bool where F: Fn(&J) -> bool {
         if match self.peek() { Some(e) => fun(e), None => false } {
             self.skip();
             true
@@ -64,7 +118,7 @@ impl<I: Iterator> Acceptor<I> {
     }
 
     #[inline]
-    fn skip_while<F>(&mut self, fun: F) -> bool where F: Fn(&I::Item) -> bool {
+    fn skip_while<F>(&mut self, fun: F) -> bool where F: Fn(&J) -> bool {
         let mut ret = false;
         while match self.peek() { Some(e) => fun(e), None => false } {
             self.skip();
@@ -74,8 +128,8 @@ impl<I: Iterator> Acceptor<I> {
     }
 
     #[inline]
-    fn take_while<F>(&mut self, fun: F) -> TakeWhile<I, F> where F: Fn(&I::Item) -> bool {
-        TakeWhile { iter: &mut self.iter, fun: fun }
+    fn take_while<F>(&mut self, fun: F) -> TakeWhile<I, F> where F: Fn(&J) -> bool {
+        TakeWhile { iter: &mut self.iter, fun: |&(e, l)| { self.location = l; fun(&e) } }
     }
 }
 
@@ -94,7 +148,7 @@ enum Token {
 }
 
 struct Tokenizer<'a> {
-    acceptor: Acceptor<Chars<'a>>,
+    acceptor: Acceptor<char, Tracker<Chars<'a>>>,
 }
 
 impl<'a> Iterator for Tokenizer<'a> {
@@ -145,7 +199,7 @@ pub fn deserialize(text: &str) {
 }
 
 pub fn print_tokens(text: &str) {
-    for tok in (Tokenizer { acceptor: Acceptor { iter: text.chars().peekable() } }) {
+    for tok in (Tokenizer { acceptor: Acceptor { iter: Tracker::new(text.chars()).peekable() } }) {
         println!("{:?}", tok);
     }
 }
