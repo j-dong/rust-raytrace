@@ -150,16 +150,6 @@ impl<I: Processable> Acceptor<I> {
     fn skip(&mut self) -> bool { self.take().is_some() }
 
     #[inline]
-    fn skip_if<F>(&mut self, fun: F) -> bool where F: Fn(&I::Item) -> bool {
-        if match self.peek() { Some(e) => fun(e), None => false } {
-            self.skip();
-            true
-        } else {
-            false
-        }
-    }
-
-    #[inline]
     fn skip_while<F>(&mut self, fun: F) -> bool where F: Fn(&I::Item) -> bool {
         let mut ret = false;
         while match self.peek() { Some(e) => fun(e), None => false } {
