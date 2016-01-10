@@ -1,0 +1,23 @@
+{
+    objects: [
+        {
+            bounds: Sphere {
+                center: (0.0, 0.0, -2.0)
+                radius: 1.0
+            }
+            material: {
+                diffuse: rgb(1.0, 1.0, 1.0)
+                reflect: rgb(0.2, 0.2, 0.2)
+            }
+        }
+    ]
+    lights: [
+        {
+            model: DirectionalLight {
+                direction: (0.0, 0.0, 1.0)
+            }
+            color: rgb(1.0, 1.0, 1.0)
+        }
+    ]
+    camera: SimplePerspectiveCamera new((0, 0, 0), (0, 0, -1), (0, 1, 0), 0.5)
+}

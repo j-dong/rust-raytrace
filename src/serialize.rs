@@ -11,6 +11,7 @@ use ::camera::*;
 use ::scene::*;
 use ::types::{Vec3, Pnt3};
 use ::color::*;
+use ::shapes::*;
 
 #[derive(Copy, Clone, Debug)]
 struct Location {
@@ -215,7 +216,7 @@ enum Token {
 }
 
 #[derive(Debug)]
-enum SyntaxErrorType {
+pub enum SyntaxErrorType {
     InvalidToken,
     InvalidNumber { num: String, err: <f32 as FromStr>::Err },
     Expect(String),
@@ -238,7 +239,7 @@ impl fmt::Display for SyntaxErrorType {
 }
 
 #[derive(Debug)]
-struct SyntaxError {
+pub struct SyntaxError {
     etype: SyntaxErrorType,
     location: Location,
 }
@@ -332,18 +333,19 @@ impl<'a> Processable for Tokenizer<'a> {
     }
 }
 
-pub fn deserialize(text: &str) {
-    unimplemented!()
-}
-
-pub fn print_tokens(text: &str) {
-    let mut tokenizer = Tokenizer { acceptor: Acceptor { iter: LL1::new(text.chars()) }, error: None };
-    for tok in &mut tokenizer {
-        println!("{:?}", tok);
-    }
-    if let Some(err) = tokenizer.error {
-        println!("There was an error:");
-        println!("{}", err);
+pub fn deserialize(text: &String) -> Result<Scene, SyntaxError> {
+    let mut tokenizer = Acceptor {
+        iter: LL1::new(Tokenizer {
+            acceptor: Acceptor { iter: LL1::new(text.chars()) },
+            error: None
+        })
+    };
+    // I would love to have a tail call here, but we need to
+    // process a possible lex error.
+    let result = parse_scene(&mut tokenizer);
+    match tokenizer.iter.iter.error {
+        Some(e) => Err(e),
+        None => result,
     }
 }
 
@@ -466,13 +468,6 @@ macro_rules! fn_parse_function {
     }
 }
 
-fn parse_object(toks: &mut Acceptor<Tokenizer>) -> Result<Object, SyntaxError> { unimplemented!() }
-fn parse_directional_light(toks: &mut Acceptor<Tokenizer>) -> Result<DirectionalLight, SyntaxError> { unimplemented!() }
-fn parse_point_light(toks: &mut Acceptor<Tokenizer>) -> Result<PointLight, SyntaxError> { unimplemented!() }
-
-fn get_light(toks: &mut Acceptor<Tokenizer>) -> Result<Light, SyntaxError> { unimplemented!() }
-fn camera_stub() -> Result<Box<Camera>, SyntaxError> { unimplemented!() }
-
 #[inline]
 fn parse_vec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokenizer>) -> Result<E, SyntaxError>) -> Result<Vec<E>, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LBracket => true, _ => false}}, "LBracket"));
@@ -484,16 +479,22 @@ fn parse_vec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokeniz
     Ok(result)
 }
 
+fn_parse_struct!(
+    parse_sphere(toks) -> Sphere {
+        center: parse_pnt3(toks),
+        radius: parse_f32(toks),
+    }
+);
+
 fn_parse_box!(
-    parse_box_light_model(toks) -> LightModel {
-        DirectionalLight => parse_directional_light(toks),
-        PointLight => parse_point_light(toks),
+    parse_box_shape(toks) -> Shape {
+        Sphere => parse_sphere(toks),
     }
 );
 
 fn_parse_function!(
-    parse_simple_perspective_camera(toks) -> SimplePerspectiveCamera
-    SimplePerspectiveCamera(
+    parse_new_spc(toks) -> SimplePerspectiveCamera
+    new(
         position: parse_pnt3(toks),
         look: parse_vec3(toks),
         up: parse_vec3(toks),
@@ -501,10 +502,56 @@ fn_parse_function!(
     ) => SimplePerspectiveCamera::new(&position, &look, &up, im_dist)
 );
 
+fn_parse_box!(
+    parse_box_camera(toks) -> Camera {
+        SimplePerspectiveCamera => parse_new_spc(toks),
+    }
+);
+
+fn_parse_struct!(
+    parse_material(toks) -> Material {
+        diffuse: parse_color(toks),
+        reflect: parse_color(toks),
+    }
+);
+
+fn_parse_struct!(
+    parse_object(toks) -> Object {
+        bounds: parse_box_shape(toks),
+        material: parse_material(toks),
+    }
+);
+
+fn_parse_struct!(
+    parse_light(toks) -> Light {
+        model: parse_box_light_model(toks),
+        color: parse_color(toks),
+    }
+);
+
+fn_parse_struct!(
+    parse_point_light(toks) -> PointLight {
+        location: parse_pnt3(toks),
+    }
+);
+
+fn_parse_struct!(
+    parse_directional_light(toks) -> DirectionalLight {
+        direction: parse_vec3(toks),
+    }
+);
+
+fn_parse_box!(
+    parse_box_light_model(toks) -> LightModel {
+        PointLight => parse_point_light(toks),
+        DirectionalLight => parse_directional_light(toks),
+    }
+);
+
 fn_parse_struct!(
     parse_scene(toks) -> Scene {
         objects: parse_vec(toks, parse_object),
-        lights: parse_vec(toks, get_light),
-        camera: camera_stub(),
+        lights: parse_vec(toks, parse_light),
+        camera: parse_box_camera(toks),
     }
 );

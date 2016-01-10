@@ -1,6 +1,7 @@
 extern crate nalgebra as na;
 extern crate libraytrace;
 
+use std::io::BufReader;
 use std::io::prelude::*;
 use std::fs::File;
 
@@ -14,46 +15,15 @@ use libraytrace::bmp;
 use libraytrace::serialize;
 
 fn main() {
-    serialize::print_tokens("hello: world // whoo
-                            hello # whoo
-                            bye /*
-                                   test
-                                   test
-                                   */ free
-                            /* */ /* */ //
-
-
-                            aaa
-    // serious test now
-    {
-        objects: [
-            {
-                bounds: Sphere {
-                    center: (0.0, 0.0, -2.0)
-                    radius: 1.0
-                }
-                material: {
-                    diffuse: (1.0, 1.0, 1.0)
-                    reflect: (0.2, 0.2, 0.2)
-                }
-            }
-        ]
-        lights: [
-            {
-                model: DirectionalLight {
-                    direction: (0.0, 0.0, 1.0)
-                }
-                color: (1.0, 1.0, 1.0)
-            }
-        ]
-        // camera is complicated
-    }");
-    serialize::print_tokens("
-    testing error:
-    // the / character is unhandled
-    // ! isn't a thing
-    0... is an invalid number
-    ");
+    // read a file and test serialization
+    let file = File::open("test_scene.txt").unwrap();
+    let mut reader = BufReader::new(file);
+    let mut contents = String::new();
+    reader.read_to_string(&mut contents);
+    match serialize::deserialize(&contents) {
+        Ok(_) => println!("success!"),
+        Err(e) => println!("error: {}", e),
+    }
     return;
     // camera parameters
     let eye  = Pnt3::new(0.0, 0.0, 0.0);
