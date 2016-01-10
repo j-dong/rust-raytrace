@@ -344,24 +344,41 @@ pub fn print_tokens(text: &str) {
     }
 }
 
+#[inline]
+fn ParseFloat(toks: &mut Acceptor<Tokenizer>) -> Result<f32, SyntaxError> {
+    Ok(match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(x) => x, _ => panic!("at the disco") })
+}
+
+#[inline]
+fn ParseInt(toks: &mut Acceptor<Tokenizer>) -> Result<i32, SyntaxError> {
+    let num = try!(ParseFloat(toks));
+    if num.fract().abs() > 0.01 {
+        println!("Warning: {} stored as integer", num);
+    }
+    if num.abs() > 1677215.0 {
+        println!("Warning: integer values past ~2^24+1 are not exact");
+    }
+    Ok(num.round() as i32)
+}
+
 fn ParseVec3(toks: &mut Acceptor<Tokenizer>) -> Result<Vec3, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
-    let x = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(x) => x, _ => panic!("at the disco") };
+    let x = try!(ParseFloat(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let y = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(y) => y, _ => panic!("at the disco") };
+    let y = try!(ParseFloat(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let z = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(z) => z, _ => panic!("at the disco") };
+    let z = try!(ParseFloat(toks));
     try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
     Ok(Vec3::new(x, y, z))
 }
 
 fn ParsePnt3(toks: &mut Acceptor<Tokenizer>) -> Result<Pnt3, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
-    let x = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(x) => x, _ => panic!("at the disco") };
+    let x = try!(ParseFloat(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let y = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(y) => y, _ => panic!("at the disco") };
+    let y = try!(ParseFloat(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let z = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(z) => z, _ => panic!("at the disco") };
+    let z = try!(ParseFloat(toks));
     try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
     Ok(Pnt3::new(x, y, z))
 }
@@ -369,11 +386,11 @@ fn ParsePnt3(toks: &mut Acceptor<Tokenizer>) -> Result<Pnt3, SyntaxError> {
 fn ParseColor(toks: &mut Acceptor<Tokenizer>) -> Result<Color, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::Identifier(ref x) => x == "rgb", _ => false}}, "Identifier(\"rgb\")"));
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
-    let r = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(r) => r, _ => panic!("at the disco") };
+    let r = try!(ParseFloat(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let g = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(g) => g, _ => panic!("at the disco") };
+    let g = try!(ParseFloat(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let b = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(b) => b, _ => panic!("at the disco") };
+    let b = try!(ParseFloat(toks));
     try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
     Ok(Color::from_rgb(r, g, b))
 }
