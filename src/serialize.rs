@@ -342,9 +342,20 @@ pub fn print_tokens(text: &str) {
     }
 }
 
-fn ParseVecObject(toks: &mut Acceptor<Tokenizer>) -> Result<Vec<Object>, SyntaxError> { unimplemented!() }
+fn ParseObject(toks: &mut Acceptor<Tokenizer>) -> Result<Object, SyntaxError> { unimplemented!() }
+
 fn ParseVecLight(toks: &mut Acceptor<Tokenizer>) -> Result<Vec<Light>, SyntaxError> { unimplemented!() }
 fn camera_stub() -> Box<Camera> { unimplemented!() }
+
+fn ParseVecObject(toks: &mut Acceptor<Tokenizer>) -> Result<Vec<Object>, SyntaxError> {
+    try!(toks.expect(|t| {match *t {Token::LBracket => true, _ => false}}, "LBracket"));
+    let mut result = Vec::new();
+    while toks.accept(|t| {match *t {Token::RBracket => true, _ => false}}).is_none() {
+        result.push(try!(ParseObject(toks)));
+    }
+    // right bracket accepted already
+    Ok(result)
+}
 
 fn ParseScene(toks: &mut Acceptor<Tokenizer>) -> Result<Scene, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LBrace => true, _ => false}}, "LBrace"));
