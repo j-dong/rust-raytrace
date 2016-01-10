@@ -348,13 +348,13 @@ pub fn print_tokens(text: &str) {
 }
 
 #[inline]
-fn ParseFloat(toks: &mut Acceptor<Tokenizer>) -> Result<f32, SyntaxError> {
+fn parse_f32(toks: &mut Acceptor<Tokenizer>) -> Result<f32, SyntaxError> {
     Ok(match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(x) => x, _ => panic!("at the disco") })
 }
 
 #[inline]
-fn ParseInt(toks: &mut Acceptor<Tokenizer>) -> Result<i32, SyntaxError> {
-    let num = try!(ParseFloat(toks));
+fn parse_i32(toks: &mut Acceptor<Tokenizer>) -> Result<i32, SyntaxError> {
+    let num = try!(parse_f32(toks));
     if num.fract().abs() > 0.01 {
         println!("Warning: {} stored as integer", num);
     }
@@ -364,49 +364,49 @@ fn ParseInt(toks: &mut Acceptor<Tokenizer>) -> Result<i32, SyntaxError> {
     Ok(num.round() as i32)
 }
 
-fn ParseVec3(toks: &mut Acceptor<Tokenizer>) -> Result<Vec3, SyntaxError> {
+fn parse_vec3(toks: &mut Acceptor<Tokenizer>) -> Result<Vec3, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
-    let x = try!(ParseFloat(toks));
+    let x = try!(parse_f32(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let y = try!(ParseFloat(toks));
+    let y = try!(parse_f32(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let z = try!(ParseFloat(toks));
+    let z = try!(parse_f32(toks));
     try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
     Ok(Vec3::new(x, y, z))
 }
 
-fn ParsePnt3(toks: &mut Acceptor<Tokenizer>) -> Result<Pnt3, SyntaxError> {
+fn parse_pnt3(toks: &mut Acceptor<Tokenizer>) -> Result<Pnt3, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
-    let x = try!(ParseFloat(toks));
+    let x = try!(parse_f32(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let y = try!(ParseFloat(toks));
+    let y = try!(parse_f32(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let z = try!(ParseFloat(toks));
+    let z = try!(parse_f32(toks));
     try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
     Ok(Pnt3::new(x, y, z))
 }
 
-fn ParseColor(toks: &mut Acceptor<Tokenizer>) -> Result<Color, SyntaxError> {
+fn parse_color(toks: &mut Acceptor<Tokenizer>) -> Result<Color, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::Identifier(ref x) => x == "rgb", _ => false}}, "Identifier(\"rgb\")"));
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
-    let r = try!(ParseFloat(toks));
+    let r = try!(parse_f32(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let g = try!(ParseFloat(toks));
+    let g = try!(parse_f32(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let b = try!(ParseFloat(toks));
+    let b = try!(parse_f32(toks));
     try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
     Ok(Color::from_rgb(r, g, b))
 }
 
-fn ParseObject(toks: &mut Acceptor<Tokenizer>) -> Result<Object, SyntaxError> { unimplemented!() }
-fn ParseDirectionalLight(toks: &mut Acceptor<Tokenizer>) -> Result<DirectionalLight, SyntaxError> { unimplemented!() }
-fn ParsePointLight(toks: &mut Acceptor<Tokenizer>) -> Result<PointLight, SyntaxError> { unimplemented!() }
+fn parse_object(toks: &mut Acceptor<Tokenizer>) -> Result<Object, SyntaxError> { unimplemented!() }
+fn parse_directional_light(toks: &mut Acceptor<Tokenizer>) -> Result<DirectionalLight, SyntaxError> { unimplemented!() }
+fn parse_point_light(toks: &mut Acceptor<Tokenizer>) -> Result<PointLight, SyntaxError> { unimplemented!() }
 
 fn get_light(toks: &mut Acceptor<Tokenizer>) -> Result<Light, SyntaxError> { unimplemented!() }
 fn camera_stub() -> Box<Camera> { unimplemented!() }
 
 #[inline]
-fn ParseVec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokenizer>) -> Result<E, SyntaxError>) -> Result<Vec<E>, SyntaxError> {
+fn parse_vec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokenizer>) -> Result<E, SyntaxError>) -> Result<Vec<E>, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LBracket => true, _ => false}}, "LBracket"));
     let mut result = Vec::new();
     while toks.accept(|t| {match *t {Token::RBracket => true, _ => false}}).is_none() {
@@ -417,11 +417,11 @@ fn ParseVec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokenize
 }
 
 #[inline]
-fn ParseBoxLightModel<E>(toks: &mut Acceptor<Tokenizer>) -> Result<Box<LightModel>, SyntaxError> {
+fn parse_box_light_model<E>(toks: &mut Acceptor<Tokenizer>) -> Result<Box<LightModel>, SyntaxError> {
     if let Token::Identifier(class) = try!(toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
         match class.as_ref() {
-            "DirectionalLight" => Ok(Box::new(try!(ParseDirectionalLight(toks)))),
-            "PointLight" => Ok(Box::new(try!(ParsePointLight(toks)))),
+            "DirectionalLight" => Ok(Box::new(try!(parse_directional_light(toks)))),
+            "PointLight" => Ok(Box::new(try!(parse_point_light(toks)))),
             _ => Err(SyntaxError { etype: SyntaxErrorType::NoClass(class), location: toks.iter.location }),
         }
     } else {
@@ -429,7 +429,7 @@ fn ParseBoxLightModel<E>(toks: &mut Acceptor<Tokenizer>) -> Result<Box<LightMode
     }
 }
 
-fn ParseScene(toks: &mut Acceptor<Tokenizer>) -> Result<Scene, SyntaxError> {
+fn parse_scene(toks: &mut Acceptor<Tokenizer>) -> Result<Scene, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LBrace => true, _ => false}}, "LBrace"));
     let mut objects = None;
     let mut lights = None;
@@ -438,11 +438,11 @@ fn ParseScene(toks: &mut Acceptor<Tokenizer>) -> Result<Scene, SyntaxError> {
             match name.as_ref() {
                 "objects" => {
                     try!(toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "LBrace"));
-                    objects = Some(try!(ParseVec(toks, ParseObject)));
+                    objects = Some(try!(parse_vec(toks, parse_object)));
                 },
                 "lights" => {
                     try!(toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "LBrace"));
-                    lights = Some(try!(ParseVec(toks, get_light)));
+                    lights = Some(try!(parse_vec(toks, get_light)));
                 },
                 _ => return Err(SyntaxError { etype: SyntaxErrorType::Undefined(name), location: toks.iter.location }),
             }
