@@ -6,7 +6,7 @@
 use types::*;
 use shapes::*;
 
-use types::na::{ToHomogeneous, cross, Norm};
+use types::na::{cross, Norm};
 
 /// Trait for cameras.
 ///

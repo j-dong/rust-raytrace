@@ -5,7 +5,7 @@
 use std::str::{Chars, FromStr};
 use std::fmt;
 use std::error::Error;
-use std::iter::{Iterator, Peekable};
+use std::iter::{Iterator};
 
 use ::camera::*;
 use ::scene::*;
@@ -219,7 +219,7 @@ impl fmt::Display for SyntaxErrorType {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             SyntaxErrorType::InvalidToken => write!(fmt, "invalid token"),
-            SyntaxErrorType::InvalidNumber { num: ref num, err: _ } => write!(fmt, "invalid number: {}", num),
+            SyntaxErrorType::InvalidNumber { ref num, err: _ } => write!(fmt, "invalid number: {}", num),
             SyntaxErrorType::Expect(ref s) => write!(fmt, "expected {}", s),
             SyntaxErrorType::Undefined(ref s) => write!(fmt, "undefined field: {}", s),
             SyntaxErrorType::Missing => write!(fmt, "missing one or more fields"),
