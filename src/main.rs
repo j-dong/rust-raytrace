@@ -6,58 +6,30 @@ use std::io::prelude::*;
 use std::fs::File;
 
 use libraytrace::types::*;
-use libraytrace::scene::*;
-use libraytrace::shapes::*;
-use libraytrace::camera::*;
-use libraytrace::color::Color;
 use libraytrace::raytrace;
 use libraytrace::bmp;
 use libraytrace::serialize;
 
 fn main() {
-    // read a file and test serialization
-    let file = File::open("test_scene.txt").unwrap();
-    let mut reader = BufReader::new(file);
-    let mut contents = String::new();
-    reader.read_to_string(&mut contents);
-    match serialize::deserialize(&contents) {
-        Ok(_) => println!("success!"),
-        Err(e) => println!("error: {}", e),
-    }
-    return;
-    // camera parameters
-    let eye  = Pnt3::new(0.0, 0.0, 0.0);
-    let look = Vec3::new(0.0, 0.0, -1.0);
-    let up   = Vec3::new(0.0, 1.0, 0.0);
-    let im_dist = 0.5f32;
     // image parameters
     let width:u32  = 100;
     let height:u32 = 100;
-    // test scene
-    let scene = Scene {
-        objects: vec!(
-            Object {
-                bounds: Box::new(Sphere {
-                    center: Pnt3::new(0.0, 0.0, -2.0),
-                    radius: 1.0,
-                }),
-                material: Material {
-                    diffuse: Color::from_rgb(1.0, 1.0, 1.0),
-                    reflect: Color::from_rgb(0.2, 0.2, 0.2),
-                },
-            },
-        ),
-        lights: vec!(
-            Light {
-                model: Box::new(DirectionalLight {
-                    direction: -look,
-                }),
-                color: Color::from_rgb(1.0, 1.0, 1.0),
-            },
-        ),
-        camera: Box::new(
-            SimplePerspectiveCamera::new(&eye, &look, &up, im_dist)
-        ),
+    // read a file
+    let scene = {
+        let file = match File::open("test_scene.txt") {
+            Ok(f) => f,
+            Err(e) => { println!("error: {}", e); return },
+        };
+        let mut reader = BufReader::new(file);
+        let mut contents = String::new();
+        match reader.read_to_string(&mut contents) {
+            Ok(_) => (),
+            Err(e) => { println!("error: {}", e); return },
+        }
+        match serialize::deserialize(&contents) {
+            Ok(s) => s,
+            Err(e) => { println!("error: {}", e); return },
+        }
     };
     // write BMP
     let mut file_handle = File::create("out.bmp")
