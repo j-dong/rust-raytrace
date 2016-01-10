@@ -36,11 +36,11 @@ impl fmt::Display for Location {
 }
 
 trait Processable : Iterator {
-    fn process(it: Option<Self::Item>, loc: &mut Location) -> Option<Self::Item>;
+    fn process(&self, it: Option<Self::Item>, loc: &mut Location) -> Option<Self::Item>;
 }
 
 impl<I: Iterator<Item = char>> Processable for I {
-    fn process(it: Option<char>, loc: &mut Location) -> Option<char> {
+    fn process(&self, it: Option<char>, loc: &mut Location) -> Option<char> {
         if let Some(c) = it {
             if c == '\n' {
                 loc.newline();
@@ -67,7 +67,8 @@ impl<I: Processable> LL1<I> {
     #[inline]
     fn peek(&mut self) -> Option<&I::Item> {
         if self.peeked.is_none() {
-            self.peeked = <I as Processable>::process(self.iter.next(), &mut self.location);
+            let e = self.iter.next();
+            self.peeked = self.iter.process(e, &mut self.location);
         }
         match self.peeked {
             Some(ref value) => Some(value),
@@ -83,7 +84,7 @@ impl<I: Processable> Iterator for LL1<I> {
     fn next(&mut self) -> Option<I::Item> {
         match self.peeked {
             Some(_) => self.peeked.take(),
-            None => <I as Processable>::process(self.iter.next(), &mut self.location),
+            None => { let e = self.iter.next(); self.iter.process(e, &mut self.location)} ,
         }
     }
 
@@ -168,6 +169,32 @@ impl<I: Processable> Acceptor<I> {
     }
 }
 
+trait Expectable<I> {
+    fn expect<F>(&mut self, fun: F, desc: &str) -> Result<I, SyntaxError> where F: Fn(&I) -> bool;
+}
+
+// TODO: FIXME: TOTAL HACK
+impl<I: Processable> Expectable<I::Item> for Acceptor<I> where I::Item: fmt::Debug {
+    #[inline]
+    fn expect<F>(&mut self, fun: F, desc: &str) -> Result<I::Item, SyntaxError> where F: Fn(&I::Item) -> bool {
+        match if let Some(e) = self.peek() {
+            if fun(e) {
+                // guaranteed take() is not None
+                1
+            } else {
+                2
+            }
+        } else {
+            3
+        } {
+            1 => Ok(self.take().unwrap()),
+            2 => Err(SyntaxError { etype: SyntaxErrorType::Expect(format!("{}, not {:?}", desc, self.peek().unwrap())), location: self.iter.location }),
+            3 => Err(SyntaxError { etype: SyntaxErrorType::Expect(format!("{} (end of file)", desc)), location: self.iter.location }),
+            _ => panic!("at the disco"),
+        }
+    }
+}
+
 #[derive(Debug)]
 enum Token {
     Identifier(String),
@@ -186,6 +213,7 @@ enum Token {
 enum SyntaxErrorType {
     InvalidToken,
     InvalidNumber { num: String, err: <f32 as FromStr>::Err },
+    Expect(String),
 }
 
 impl fmt::Display for SyntaxErrorType {
@@ -193,6 +221,7 @@ impl fmt::Display for SyntaxErrorType {
         match *self {
             SyntaxErrorType::InvalidToken => write!(fmt, "invalid token"),
             SyntaxErrorType::InvalidNumber { num: ref num, err: _ } => write!(fmt, "invalid number: {}", num),
+            SyntaxErrorType::Expect(ref s) => write!(fmt, "expected {}", s),
         }
     }
 }
@@ -214,6 +243,7 @@ impl Error for SyntaxError {
         match self.etype {
             SyntaxErrorType::InvalidToken => "invalid token",
             SyntaxErrorType::InvalidNumber { num: _, err: _ } => "invalid number",
+            SyntaxErrorType::Expect(_) => "expected something, got another",
         }
     }
 
@@ -278,6 +308,13 @@ impl<'a> Iterator for Tokenizer<'a> {
             },
             _ => { self.error = Some(SyntaxError { etype: SyntaxErrorType::InvalidToken, location: self.acceptor.iter.location }); None }
         }
+    }
+}
+
+impl<'a> Processable for Tokenizer<'a> {
+    fn process(&self, it: Option<Token>, loc: &mut Location) -> Option<Token> {
+        loc.set(&self.acceptor.iter.location);
+        it
     }
 }
 
