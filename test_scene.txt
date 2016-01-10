@@ -2,11 +2,31 @@
     objects: [
         {
             bounds: Sphere {
-                center: (0.0, 0.0, -2.0)
+                center: (0.0, -1.0, -2.0)
                 radius: 1.0
             }
             material: {
-                diffuse: rgb(1.0, 1.0, 1.0)
+                diffuse: rgb(0.0, 1.0, 1.0)
+                reflect: rgb(0.2, 0.2, 0.2)
+            }
+        }
+        {
+            bounds: Sphere {
+                center: (0.8660254038, 0.5, -2.0)
+                radius: 1.0
+            }
+            material: {
+                diffuse: rgb(1.0, 0.0, 1.0)
+                reflect: rgb(0.2, 0.2, 0.2)
+            }
+        }
+        {
+            bounds: Sphere {
+                center: (-0.8660254038, 0.5, -2.0)
+                radius: 1.0
+            }
+            material: {
+                diffuse: rgb(1.0, 1.0, 0.0)
                 reflect: rgb(0.2, 0.2, 0.2)
             }
         }
@@ -19,5 +39,5 @@
             color: rgb(1.0, 1.0, 1.0)
         }
     ]
-    camera: SimplePerspectiveCamera new((0, 0, 0), (0, 0, -1), (0, 1, 0), 0.5)
+    camera: SimplePerspectiveCamera new((0, 0, 0), (0, 0, -1), (0, 1, 0), 0.6)
 }
