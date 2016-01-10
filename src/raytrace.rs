@@ -39,7 +39,8 @@ pub fn intersection_color(scene: &Scene, result: &SceneIntersectionResult, ray: 
     if mat.reflect.significance() * significance > MIN_SIGNIFICANCE {
         let d = ray.direction;
         let n = result.result.normal;
-        let reflect = Ray { origin: pt, direction: d - n * (2.0 * (dot(&d, &n))) };
+        let rd = d - n * (2.0 * dot(&d, &n));
+        let reflect = Ray { origin: pt + rd * 0.001, direction: rd };
         res = res + mat.reflect * ray_color(scene, &reflect, significance * mat.reflect.significance());
     }
     res
