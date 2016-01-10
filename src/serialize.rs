@@ -398,12 +398,56 @@ fn parse_color(toks: &mut Acceptor<Tokenizer>) -> Result<Color, SyntaxError> {
     Ok(Color::from_rgb(r, g, b))
 }
 
+macro_rules! fn_parse_struct {
+    ( $name:ident ( $toks:ident ) -> $ty:ident { $( $field:ident : $parser:expr ),* $(,)* } ) => {
+        fn $name($toks: &mut Acceptor<Tokenizer>) -> Result<$ty, SyntaxError> {
+            try!($toks.expect(|t| {match *t {Token::LBrace => true, _ => false}}, "LBrace"));
+            // declare the field holders
+            $( let mut $field = None; )*
+            while $toks.accept(|t| {match *t {Token::RBrace => true, _ => false}}).is_none() {
+                if let Token::Identifier(name) = try!($toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
+                    match name.as_ref() {
+                        $( stringify!($field) => {
+                            try!($toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "LBrace"));
+                            $field = Some(try!($parser));
+                        }, )*
+                        _ => return Err(SyntaxError { etype: SyntaxErrorType::Undefined(name), location: $toks.iter.location }),
+                    }
+                } else {
+                    panic!("at the disco");
+                }
+            }
+            // right brace accepted already
+            match ($($field,)*) {
+                ($(Some($field),)*) => Ok($ty { $($field: $field,)* }),
+                _ => Err(SyntaxError { etype: SyntaxErrorType::Missing, location: $toks.iter.location }),
+            }
+        }
+    }
+}
+
+macro_rules! fn_parse_box {
+    ( $name:ident ( $toks:ident ) -> $ty:ident { $( $class:ident => $parser:expr ),* $(,)* } ) => {
+        #[inline]
+        fn $name($toks: &mut Acceptor<Tokenizer>) -> Result<Box<$ty>, SyntaxError> {
+            if let Token::Identifier(class) = try!($toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
+                match class.as_ref() {
+                    $(stringify!($class) => Ok(Box::new(try!($parser))),)*
+                    _ => Err(SyntaxError { etype: SyntaxErrorType::NoClass(class), location: $toks.iter.location }),
+                }
+            } else {
+                panic!("at the disco");
+            }
+        }
+    }
+}
+
 fn parse_object(toks: &mut Acceptor<Tokenizer>) -> Result<Object, SyntaxError> { unimplemented!() }
 fn parse_directional_light(toks: &mut Acceptor<Tokenizer>) -> Result<DirectionalLight, SyntaxError> { unimplemented!() }
 fn parse_point_light(toks: &mut Acceptor<Tokenizer>) -> Result<PointLight, SyntaxError> { unimplemented!() }
 
 fn get_light(toks: &mut Acceptor<Tokenizer>) -> Result<Light, SyntaxError> { unimplemented!() }
-fn camera_stub() -> Box<Camera> { unimplemented!() }
+fn camera_stub() -> Result<Box<Camera>, SyntaxError> { unimplemented!() }
 
 #[inline]
 fn parse_vec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokenizer>) -> Result<E, SyntaxError>) -> Result<Vec<E>, SyntaxError> {
@@ -416,43 +460,17 @@ fn parse_vec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokeniz
     Ok(result)
 }
 
-#[inline]
-fn parse_box_light_model<E>(toks: &mut Acceptor<Tokenizer>) -> Result<Box<LightModel>, SyntaxError> {
-    if let Token::Identifier(class) = try!(toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
-        match class.as_ref() {
-            "DirectionalLight" => Ok(Box::new(try!(parse_directional_light(toks)))),
-            "PointLight" => Ok(Box::new(try!(parse_point_light(toks)))),
-            _ => Err(SyntaxError { etype: SyntaxErrorType::NoClass(class), location: toks.iter.location }),
-        }
-    } else {
-        panic!("at the disco");
+fn_parse_box!(
+    parse_box_light_bodel(toks) -> LightModel {
+        DirectionalLight => parse_directional_light(toks),
+        PointLight => parse_point_light(toks),
     }
-}
+);
 
-fn parse_scene(toks: &mut Acceptor<Tokenizer>) -> Result<Scene, SyntaxError> {
-    try!(toks.expect(|t| {match *t {Token::LBrace => true, _ => false}}, "LBrace"));
-    let mut objects = None;
-    let mut lights = None;
-    while toks.accept(|t| {match *t {Token::RBrace => true, _ => false}}).is_none() {
-        if let Token::Identifier(name) = try!(toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
-            match name.as_ref() {
-                "objects" => {
-                    try!(toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "LBrace"));
-                    objects = Some(try!(parse_vec(toks, parse_object)));
-                },
-                "lights" => {
-                    try!(toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "LBrace"));
-                    lights = Some(try!(parse_vec(toks, get_light)));
-                },
-                _ => return Err(SyntaxError { etype: SyntaxErrorType::Undefined(name), location: toks.iter.location }),
-            }
-        } else {
-            panic!("at the disco");
-        }
+fn_parse_struct!(
+    parse_scene(toks) -> Scene {
+        objects: parse_vec(toks, parse_object),
+        lights: parse_vec(toks, get_light),
+        camera: camera_stub(),
     }
-    // right brace accepted already
-    match (objects, lights) {
-        (Some(objects), Some(lights)) => Ok(Scene { objects: objects, lights: lights, camera: camera_stub() } ),
-        _ => Err(SyntaxError { etype: SyntaxErrorType::Missing, location: toks.iter.location }),
-    }
-}
+);
