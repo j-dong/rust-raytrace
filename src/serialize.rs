@@ -428,7 +428,6 @@ macro_rules! fn_parse_struct {
 
 macro_rules! fn_parse_box {
     ( $name:ident ( $toks:ident ) -> $ty:ident { $( $class:ident => $parser:expr ),* $(,)* } ) => {
-        #[inline]
         fn $name($toks: &mut Acceptor<Tokenizer>) -> Result<Box<$ty>, SyntaxError> {
             if let Token::Identifier(class) = try!($toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
                 match class.as_ref() {
@@ -438,6 +437,31 @@ macro_rules! fn_parse_box {
             } else {
                 panic!("at the disco");
             }
+        }
+    }
+}
+
+macro_rules! process_fn_args {
+    ( $toks:ident, $firstparam:ident : $firstparser:expr, $($param:ident : $parser:expr),*) => {
+        let ($firstparam, $($param,)*) = (
+            try!($firstparser),
+            $(
+                { try!($toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma")); try!($parser) },
+             )*
+        );
+    };
+    ( $toks:ident, ) => {}
+}
+
+macro_rules! fn_parse_function {
+    ( $name:ident ( $toks:ident ) -> $ty:ident $fname:ident ( $($param:ident : $parser:expr),* $(,)* ) => $fcall:expr) => {
+        fn $name($toks: &mut Acceptor<Tokenizer>) -> Result<$ty, SyntaxError> {
+            try!($toks.expect(|t| {match *t {Token::Identifier(ref x) => x == stringify!($fname), _ => false}}, concat!("Identifier(\"", stringify!($fname), "\")")));
+            try!($toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
+            // normalize parameter format so easier parsing
+            process_fn_args!($toks, $($param : $parser),*);
+            try!($toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
+            Ok($fcall)
         }
     }
 }
@@ -461,10 +485,20 @@ fn parse_vec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokeniz
 }
 
 fn_parse_box!(
-    parse_box_light_bodel(toks) -> LightModel {
+    parse_box_light_model(toks) -> LightModel {
         DirectionalLight => parse_directional_light(toks),
         PointLight => parse_point_light(toks),
     }
+);
+
+fn_parse_function!(
+    parse_simple_perspective_camera(toks) -> SimplePerspectiveCamera
+    SimplePerspectiveCamera(
+        position: parse_pnt3(toks),
+        look: parse_vec3(toks),
+        up: parse_vec3(toks),
+        im_dist: parse_f32(toks),
+    ) => SimplePerspectiveCamera::new(&position, &look, &up, im_dist)
 );
 
 fn_parse_struct!(
