@@ -7,6 +7,9 @@ use std::fmt;
 use std::error::Error;
 use std::iter::{Iterator, Peekable};
 
+use ::camera::*;
+use ::scene::*;
+
 #[derive(Copy, Clone, Debug)]
 struct Location {
     row: usize,
@@ -214,6 +217,8 @@ enum SyntaxErrorType {
     InvalidToken,
     InvalidNumber { num: String, err: <f32 as FromStr>::Err },
     Expect(String),
+    Undefined(String),
+    Missing,
 }
 
 impl fmt::Display for SyntaxErrorType {
@@ -222,6 +227,8 @@ impl fmt::Display for SyntaxErrorType {
             SyntaxErrorType::InvalidToken => write!(fmt, "invalid token"),
             SyntaxErrorType::InvalidNumber { num: ref num, err: _ } => write!(fmt, "invalid number: {}", num),
             SyntaxErrorType::Expect(ref s) => write!(fmt, "expected {}", s),
+            SyntaxErrorType::Undefined(ref s) => write!(fmt, "undefined field: {}", s),
+            SyntaxErrorType::Missing => write!(fmt, "missing one or more fields"),
         }
     }
 }
@@ -244,6 +251,8 @@ impl Error for SyntaxError {
             SyntaxErrorType::InvalidToken => "invalid token",
             SyntaxErrorType::InvalidNumber { num: _, err: _ } => "invalid number",
             SyntaxErrorType::Expect(_) => "expected something, got another",
+            SyntaxErrorType::Undefined(_) => "undefined field",
+            SyntaxErrorType::Missing => "missing fields",
         }
     }
 
@@ -330,5 +339,37 @@ pub fn print_tokens(text: &str) {
     if let Some(err) = tokenizer.error {
         println!("There was an error:");
         println!("{}", err);
+    }
+}
+
+fn ParseVecObject(toks: &mut Acceptor<Tokenizer>) -> Result<Vec<Object>, SyntaxError> { unimplemented!() }
+fn ParseVecLight(toks: &mut Acceptor<Tokenizer>) -> Result<Vec<Light>, SyntaxError> { unimplemented!() }
+fn camera_stub() -> Box<Camera> { unimplemented!() }
+
+fn ParseScene(toks: &mut Acceptor<Tokenizer>) -> Result<Scene, SyntaxError> {
+    try!(toks.expect(|t| {match *t {Token::LBrace => true, _ => false}}, "LBrace"));
+    let mut objects = None;
+    let mut lights = None;
+    while toks.accept(|t| {match *t {Token::RBrace => true, _ => false}}).is_none() {
+        if let Token::Identifier(name) = try!(toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
+            match name.as_ref() {
+                "objects" => {
+                    try!(toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "LBrace"));
+                    objects = Some(try!(ParseVecObject(toks)));
+                },
+                "lights" => {
+                    try!(toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "LBrace"));
+                    lights = Some(try!(ParseVecLight(toks)));
+                },
+                _ => return Err(SyntaxError { etype: SyntaxErrorType::Undefined(name), location: toks.iter.location }),
+            }
+        } else {
+            panic!("at the disco");
+        }
+    }
+    // right brace accepted already
+    match (objects, lights) {
+        (Some(objects), Some(lights)) => Ok(Scene { objects: objects, lights: lights, camera: camera_stub() } ),
+        _ => Err(SyntaxError { etype: SyntaxErrorType::Missing, location: toks.iter.location }),
     }
 }
