@@ -221,6 +221,7 @@ enum SyntaxErrorType {
     Expect(String),
     Undefined(String),
     Missing,
+    NoClass(String),
 }
 
 impl fmt::Display for SyntaxErrorType {
@@ -231,6 +232,7 @@ impl fmt::Display for SyntaxErrorType {
             SyntaxErrorType::Expect(ref s) => write!(fmt, "expected {}", s),
             SyntaxErrorType::Undefined(ref s) => write!(fmt, "undefined field: {}", s),
             SyntaxErrorType::Missing => write!(fmt, "missing one or more fields"),
+            SyntaxErrorType::NoClass(ref s) => write!(fmt, "no such class: {}", s),
         }
     }
 }
@@ -255,6 +257,7 @@ impl Error for SyntaxError {
             SyntaxErrorType::Expect(_) => "expected something, got another",
             SyntaxErrorType::Undefined(_) => "undefined field",
             SyntaxErrorType::Missing => "missing fields",
+            SyntaxErrorType::NoClass(_) => "no such class",
         }
     }
 
@@ -396,8 +399,10 @@ fn ParseColor(toks: &mut Acceptor<Tokenizer>) -> Result<Color, SyntaxError> {
 }
 
 fn ParseObject(toks: &mut Acceptor<Tokenizer>) -> Result<Object, SyntaxError> { unimplemented!() }
+fn ParseDirectionalLight(toks: &mut Acceptor<Tokenizer>) -> Result<DirectionalLight, SyntaxError> { unimplemented!() }
+fn ParsePointLight(toks: &mut Acceptor<Tokenizer>) -> Result<PointLight, SyntaxError> { unimplemented!() }
 
-fn ParseVecLight(toks: &mut Acceptor<Tokenizer>) -> Result<Vec<Light>, SyntaxError> { unimplemented!() }
+fn get_light(toks: &mut Acceptor<Tokenizer>) -> Result<Light, SyntaxError> { unimplemented!() }
 fn camera_stub() -> Box<Camera> { unimplemented!() }
 
 #[inline]
@@ -409,6 +414,19 @@ fn ParseVec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokenize
     }
     // right bracket accepted already
     Ok(result)
+}
+
+#[inline]
+fn ParseBoxLightModel<E>(toks: &mut Acceptor<Tokenizer>) -> Result<Box<LightModel>, SyntaxError> {
+    if let Token::Identifier(class) = try!(toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
+        match class.as_ref() {
+            "DirectionalLight" => Ok(Box::new(try!(ParseDirectionalLight(toks)))),
+            "PointLight" => Ok(Box::new(try!(ParsePointLight(toks)))),
+            _ => Err(SyntaxError { etype: SyntaxErrorType::NoClass(class), location: toks.iter.location }),
+        }
+    } else {
+        panic!("at the disco");
+    }
 }
 
 fn ParseScene(toks: &mut Acceptor<Tokenizer>) -> Result<Scene, SyntaxError> {
@@ -424,7 +442,7 @@ fn ParseScene(toks: &mut Acceptor<Tokenizer>) -> Result<Scene, SyntaxError> {
                 },
                 "lights" => {
                     try!(toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "LBrace"));
-                    lights = Some(try!(ParseVecLight(toks)));
+                    lights = Some(try!(ParseVec(toks, get_light)));
                 },
                 _ => return Err(SyntaxError { etype: SyntaxErrorType::Undefined(name), location: toks.iter.location }),
             }
