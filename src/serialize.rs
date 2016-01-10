@@ -9,6 +9,8 @@ use std::iter::{Iterator, Peekable};
 
 use ::camera::*;
 use ::scene::*;
+use ::types::{Vec3, Pnt3};
+use ::color::*;
 
 #[derive(Copy, Clone, Debug)]
 struct Location {
@@ -340,6 +342,40 @@ pub fn print_tokens(text: &str) {
         println!("There was an error:");
         println!("{}", err);
     }
+}
+
+fn ParseVec3(toks: &mut Acceptor<Tokenizer>) -> Result<Vec3, SyntaxError> {
+    try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
+    let x = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(x) => x, _ => panic!("at the disco") };
+    try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
+    let y = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(y) => y, _ => panic!("at the disco") };
+    try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
+    let z = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(z) => z, _ => panic!("at the disco") };
+    try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
+    Ok(Vec3::new(x, y, z))
+}
+
+fn ParsePnt3(toks: &mut Acceptor<Tokenizer>) -> Result<Pnt3, SyntaxError> {
+    try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
+    let x = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(x) => x, _ => panic!("at the disco") };
+    try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
+    let y = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(y) => y, _ => panic!("at the disco") };
+    try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
+    let z = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(z) => z, _ => panic!("at the disco") };
+    try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
+    Ok(Pnt3::new(x, y, z))
+}
+
+fn ParseColor(toks: &mut Acceptor<Tokenizer>) -> Result<Color, SyntaxError> {
+    try!(toks.expect(|t| {match *t {Token::Identifier(ref x) => x == "rgb", _ => false}}, "Identifier(\"rgb\")"));
+    try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
+    let r = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(r) => r, _ => panic!("at the disco") };
+    try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
+    let g = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(g) => g, _ => panic!("at the disco") };
+    try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
+    let b = match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(b) => b, _ => panic!("at the disco") };
+    try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
+    Ok(Color::from_rgb(r, g, b))
 }
 
 fn ParseObject(toks: &mut Acceptor<Tokenizer>) -> Result<Object, SyntaxError> { unimplemented!() }
