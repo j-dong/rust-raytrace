@@ -29,6 +29,9 @@ pub fn intersection_color(scene: &Scene, result: &SceneIntersectionResult, ray: 
     res
 }
 
+/// Get the color when a ray does not intersect any geometry.
+/// Later on this function may compute sky color using scattering
+/// or perhaps a skybox.
 pub fn background_color(ray: &Ray) -> Color {
     color::BLACK
 }

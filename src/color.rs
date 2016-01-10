@@ -21,6 +21,7 @@ pub struct Color {
     pub b: f32,
 }
 
+/// The color black.
 pub const BLACK: Color = Color { r: 0.0, g: 0.0, b: 0.0 };
 
 impl Add for Color {

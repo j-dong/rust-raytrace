@@ -205,13 +205,25 @@ enum Token {
     Comma,
 }
 
+/// Type and data for a syntax error.
 #[derive(Debug)]
 pub enum SyntaxErrorType {
+    /// Input sequence could not be parsed as a valid token.
     InvalidToken,
-    InvalidNumber { num: String, err: <f32 as FromStr>::Err },
+    /// Input sequence that looks like a number could not
+    /// be parsed as a number.
+    InvalidNumber {
+        /// The input "number"
+        num: String,
+        /// The parse error (from Rust's `from_str()` method)
+        err: <f32 as FromStr>::Err },
+    /// Expected something and got another. Most common syntax error.
     Expect(String),
+    /// Undefined field given
     Undefined(String),
+    /// Missing a field
     Missing,
+    /// No such class for polymorphic `Box<T>`
     NoClass(String),
 }
 
@@ -228,9 +240,13 @@ impl fmt::Display for SyntaxErrorType {
     }
 }
 
+/// Syntax error that is thrown when invalid input is passed to
+/// the `deserialize()` function.
 #[derive(Debug)]
 pub struct SyntaxError {
+    /// The type and data of the error.
     etype: SyntaxErrorType,
+    /// The location the error occurred in the source file.
     location: Location,
 }
 
@@ -323,6 +339,7 @@ impl<'a> Processable for Tokenizer<'a> {
     }
 }
 
+/// Deserialize the given text as a `Scene` object.
 pub fn deserialize(text: &String) -> Result<Scene, SyntaxError> {
     let mut tokenizer = Acceptor {
         iter: LL1::new(Tokenizer {
