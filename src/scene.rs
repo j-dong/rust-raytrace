@@ -10,7 +10,7 @@ use shapes::*;
 use color::*;
 use camera::*;
 
-use types::na::Norm;
+use types::na::{Norm, FloatPnt};
 
 use std::boxed::Box;
 use std::option::Option;
@@ -52,6 +52,15 @@ pub trait LightModel {
         let dir = self.light_dir_for(pt);
         (dir, Ray { origin: pt.clone(), direction: -dir })
     }
+    /// Range of the shadow ray. For point lights this is important
+    /// otherwise geometry past the light can occlude the lighting.
+    fn shadow_range(&self, pt: &Pnt3) -> Option<f32> { None }
+    /// Square of the range of the shadow ray, used to avoid the
+    /// `sqrt()` operation.
+    #[inline]
+    fn sq_shadow_range(&self, pt: &Pnt3) -> Option<f32> {
+        self.shadow_range(pt).map(|x| x * x)
+    }
 }
 
 /// A light that can project rays of a color onto an object.
@@ -71,6 +80,14 @@ pub struct PointLight {
 impl LightModel for PointLight {
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3 {
         Vec3::new(pt.x - self.location.x, pt.y - self.location.y, pt.z - self.location.z).normalize()
+    }
+
+    fn sq_shadow_range(&self, pt: &Pnt3) -> Option<f32> {
+        Some(self.location.dist(pt))
+    }
+
+    fn shadow_range(&self, pt: &Pnt3) -> Option<f32> {
+        Some(self.location.sqdist(pt))
     }
 }
 

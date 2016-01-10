@@ -20,11 +20,27 @@ const MIN_SIGNIFICANCE: f32 = 1.0f32 / 256.0 / 2.0;
 pub fn intersection_color(scene: &Scene, result: &SceneIntersectionResult, ray: &Ray, significance: f32) -> Color {
     let mut res = color::BLACK;
     let pt = ray.cast(result.result.t);
+    let ref mat = result.object.material;
     for light in &scene.lights {
-        if result.object.material.diffuse.significance() * significance > MIN_SIGNIFICANCE {
+        if mat.diffuse.significance() * significance > MIN_SIGNIFICANCE {
             let (ldir, sray) = light.model.light_shadow_for(&pt);
-            res = res + result.object.material.diffuse * light.color * dot(&ldir, &result.result.normal);
+            // check if in shadow
+            if let Some(intersection) = scene.intersect(ray) {
+                if match light.model.sq_shadow_range(&pt) {
+                    Some(r2) => intersection.result.t * intersection.result.t < r2,
+                    None => false
+                } {
+                    continue;
+                }
+            }
+            res = res + mat.diffuse * light.color * dot(&ldir, &result.result.normal);
         }
+    }
+    if mat.reflect.significance() * significance > MIN_SIGNIFICANCE {
+        let d = ray.direction;
+        let n = result.result.normal;
+        let reflect = Ray { origin: pt, direction: d - n * (2.0 * (dot(&d, &n))) };
+        res = res + mat.reflect * ray_color(scene, &reflect, significance * mat.reflect.significance());
     }
     res
 }
@@ -39,11 +55,15 @@ pub fn background_color(ray: &Ray) -> Color {
 /// Trace a ray to an object or nothing and return the result of
 /// color computation. Significance is a float that is decreased
 /// when a ray is generated recursively.
-pub fn raytrace(scene: &Scene, pos: &Pnt2, significance: f32) -> Color {
+pub fn ray_color(scene: &Scene, ray: &Ray, significance: f32) -> Color {
     // find the object that the ray hits and compute the color
-    let ray = scene.camera.project(pos);
-    match scene.intersect(&ray) {
-        Some(result) => intersection_color(scene, &result, &ray, significance),
-        None => background_color(&ray),
+    match scene.intersect(ray) {
+        Some(result) => intersection_color(scene, &result, ray, significance),
+        None => background_color(ray),
     }
+}
+
+/// Project the position onto the scene and trace the ray.
+pub fn raytrace(scene: &Scene, pos: &Pnt2, significance: f32) -> Color {
+    ray_color(scene, &scene.camera.project(pos), significance)
 }
