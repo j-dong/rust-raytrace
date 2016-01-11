@@ -39,5 +39,18 @@
             color: rgb(1.0, 1.0, 1.0)
         }
     ]
-    camera: SimplePerspectiveCamera new((0, 0, 3), (0, 0, -1), (0, 1, 0), 2.0)
+    camera: SimplePerspectiveCamera look_at(
+        (0, 0, -2), // focus
+        (0, 0, -1), // look direction
+        (0, 1, 0),  // up vector
+        // FOV: I sit somewhere around 30 inches from the screen
+        // with DPI 96.
+        // For an image with height h, the angle theta is
+        // 2 atan(h/(30 * 96))
+        // which evaluates to about 8 degrees.
+        8 deg,
+        2 // half the size of the viewing plane
+        // for some reason this is actually double what it
+        // should be.
+    )
 }

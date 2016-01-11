@@ -6,6 +6,7 @@ use std::str::{Chars, FromStr};
 use std::fmt;
 use std::error::Error;
 use std::iter::{Iterator};
+use std::f32::consts;
 
 use ::camera::*;
 use ::scene::*;
@@ -373,6 +374,20 @@ fn parse_i32(toks: &mut Acceptor<Tokenizer>) -> Result<i32, SyntaxError> {
     Ok(num.round() as i32)
 }
 
+fn parse_ang(toks: &mut Acceptor<Tokenizer>) -> Result<f32, SyntaxError> {
+    let num = try!(parse_f32(toks));
+    if let Token::Identifier(unit) = try!(toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
+        match unit.as_ref() {
+            "deg" => Ok(num * consts::PI / 180.0),
+            "rad" => Ok(num),
+            // error may be cryptic but whatever
+            _ => Err(SyntaxError { etype: SyntaxErrorType::NoClass(unit), location: toks.iter.location }),
+        }
+    } else {
+        panic!("at the disco");
+    }
+}
+
 fn parse_vec3(toks: &mut Acceptor<Tokenizer>) -> Result<Vec3, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
     let x = try!(parse_f32(toks));
@@ -517,9 +532,20 @@ fn_parse_function!(
     ) => SimplePerspectiveCamera::new(&position, &look, &up, im_dist)
 );
 
+fn_parse_function!(
+    parse_look_at_spc(toks) -> SimplePerspectiveCamera
+    look_at(
+        focus: parse_pnt3(toks),
+        look: parse_vec3(toks),
+        up: parse_vec3(toks),
+        pov: parse_ang(toks),
+        h: parse_f32(toks),
+    ) => SimplePerspectiveCamera::look_at(&focus, &look, &up, pov, h)
+);
+
 fn_parse_box!(
     parse_box_camera(toks) -> Camera {
-        SimplePerspectiveCamera => parse_new_spc(toks),
+        SimplePerspectiveCamera => parse_new_spc(toks).or_else(|_| parse_look_at_spc(toks)),
     }
 );
 

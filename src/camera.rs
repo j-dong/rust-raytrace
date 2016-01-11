@@ -57,6 +57,16 @@ impl SimplePerspectiveCamera {
             )
         }
     }
+    /// Create a new `SimplePerspectiveCamera` from the given focus
+    /// point, viewing direction, and up vector, POV angle, and half
+    /// the focus height.
+    pub fn look_at(focus: &Pnt3, look: &Vec3, up: &Vec3, pov: f32, h: f32) -> SimplePerspectiveCamera {
+        let cot = (pov / 2.0).tan().recip();
+        let im_dist = cot;
+        let d = h * cot;
+        let position = focus.clone() - look.clone() * d;
+        SimplePerspectiveCamera::new(&position, look, up, im_dist)
+    }
 }
 
 impl Camera for SimplePerspectiveCamera {
