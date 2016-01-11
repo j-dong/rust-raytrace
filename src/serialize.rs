@@ -549,17 +549,25 @@ fn_parse_box!(
     }
 );
 
+fn_parse_box!(
+    parse_box_material(toks) -> Material {
+        PhongMaterial => parse_phong_material(toks),
+    }
+);
+
 fn_parse_struct!(
-    parse_material(toks) -> Material {
+    parse_phong_material(toks) -> PhongMaterial {
         diffuse: parse_color(toks),
-        reflect: parse_color(toks),
+        specular: parse_color(toks),
+        exponent: parse_f32(toks),
+        ambient: parse_color(toks),
     }
 );
 
 fn_parse_struct!(
     parse_object(toks) -> Object {
         bounds: parse_box_shape(toks),
-        material: parse_material(toks),
+        material: parse_box_material(toks),
     }
 );
 

@@ -22,11 +22,25 @@ use std::iter::FilterMap;
 
 /// An object's material. A material is used to compute the color
 /// of an object when a ray hits it.
-pub struct Material {
+pub trait Material {
+    /// Get the color from a ray intersection; generally involves
+    /// getting the interaction from the object's material. Significance is a float that is decreased
+    /// when a ray is generated recursively.
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f32) -> Color;
+}
+
+/// Material using the Phong reflection model.
+pub struct PhongMaterial {
     /// Diffuse color of Lambertian reflectance.
     pub diffuse: Color,
-    /// Color of mirror reflectance.
-    pub reflect: Color,
+    /// Color of specular reflectance. Currently glossy reflection is not implemented, and thus
+    /// only highlights will be glossy.
+    pub specular: Color,
+    /// Shininess (specular exponent) in the Phong reflection model.
+    pub exponent: f32,
+    /// Ambient light (light from scattered light in the environment). Currently ambient
+    /// occlusion is not implemented.
+    pub ambient: Color,
 }
 
 /// An object in a scene. The `Object` struct contains everything
@@ -35,7 +49,7 @@ pub struct Object {
     /// The bounds of the object, which is used for ray intersection.
     pub bounds: Box<Shape>,
     /// The material of the object.
-    pub material: Material,
+    pub material: Box<Material>,
 }
 
 /// A light that can project rays onto an object.

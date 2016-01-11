@@ -5,9 +5,11 @@
                 center: (0.0, 0.40824829, 0.0)
                 radius: 0.5
             }
-            material: {
+            material: PhongMaterial {
                 diffuse: rgb(1.0, 1.0, 1.0)
-                reflect: rgb(0.2, 0.2, 0.2)
+                specular: rgb(0.2, 0.2, 0.2)
+                exponent: 5.0
+                ambient: rgb(0.05, 0.05, 0.05)
             }
         }
         {
@@ -15,9 +17,11 @@
                 center: (-0.5, -0.204124145, -0.288675135)
                 radius: 0.5
             }
-            material: {
+            material: PhongMaterial {
                 diffuse: rgb(0.0, 1.0, 1.0)
-                reflect: rgb(0.2, 0.2, 0.2)
+                specular: rgb(0.2, 0.2, 0.2)
+                exponent: 5.0
+                ambient: rgb(0.05, 0.05, 0.05)
             }
         }
         {
@@ -25,9 +29,11 @@
                 center: (0.5, -0.204124145, -0.288675135)
                 radius: 0.5
             }
-            material: {
+            material: PhongMaterial {
                 diffuse: rgb(1.0, 0.0, 1.0)
-                reflect: rgb(0.2, 0.2, 0.2)
+                specular: rgb(0.2, 0.2, 0.2)
+                exponent: 5.0
+                ambient: rgb(0.05, 0.05, 0.05)
             }
         }
         {
@@ -35,9 +41,11 @@
                 center: (0, -0.204124145, 0.577350269)
                 radius: 0.5
             }
-            material: {
+            material: PhongMaterial {
                 diffuse: rgb(1.0, 1.0, 0.0)
-                reflect: rgb(0.2, 0.2, 0.2)
+                specular: rgb(0.2, 0.2, 0.2)
+                exponent: 5.0
+                ambient: rgb(0.05, 0.05, 0.05)
             }
         }
         {
@@ -45,9 +53,11 @@
                 point: (0, -0.704124145, 0)
                 normal: (0, -1.0, 0)
             }
-            material: {
+            material: PhongMaterial {
                 diffuse: rgb(0.3, 0.34, 0.4)
-                reflect: rgb(0.5, 0.5, 0.5)
+                specular: rgb(0.5, 0.5, 0.5)
+                exponent: 4.0
+                ambient: rgb(0.05, 0.05, 0.05)
             }
         }
     ]
