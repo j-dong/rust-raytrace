@@ -2,8 +2,18 @@
     objects: [
         {
             bounds: Sphere {
-                center: (0.0, -1.0, -2.0)
-                radius: 1.0
+                center: (0.0, 0.40824829, 0.0)
+                radius: 0.5
+            }
+            material: {
+                diffuse: rgb(1.0, 1.0, 1.0)
+                reflect: rgb(0.2, 0.2, 0.2)
+            }
+        }
+        {
+            bounds: Sphere {
+                center: (-0.5, -0.204124145, -0.288675135)
+                radius: 0.5
             }
             material: {
                 diffuse: rgb(0.0, 1.0, 1.0)
@@ -12,8 +22,8 @@
         }
         {
             bounds: Sphere {
-                center: (0.8660254038, 0.5, -2.0)
-                radius: 1.0
+                center: (0.5, -0.204124145, -0.288675135)
+                radius: 0.5
             }
             material: {
                 diffuse: rgb(1.0, 0.0, 1.0)
@@ -22,12 +32,22 @@
         }
         {
             bounds: Sphere {
-                center: (-0.8660254038, 0.5, -2.0)
-                radius: 1.0
+                center: (0, -0.204124145, 0.577350269)
+                radius: 0.5
             }
             material: {
                 diffuse: rgb(1.0, 1.0, 0.0)
                 reflect: rgb(0.2, 0.2, 0.2)
+            }
+        }
+        {
+            bounds: Plane {
+                point: (0, -0.704124145, 0)
+                normal: (0, -1.0, 0)
+            }
+            material: {
+                diffuse: rgb(0.3, 0.34, 0.4)
+                reflect: rgb(0.5, 0.5, 0.5)
             }
         }
     ]
@@ -40,16 +60,16 @@
         }
     ]
     camera: SimplePerspectiveCamera look_at(
-        (0, 0, -2), // focus
-        (0, 0, -1), // look direction
-        (0, 1, 0),  // up vector
+        (0, 0, 0), // focus
+        (0, -0.2, -1), // look direction
+        (0, -1, 0),  // up vector
         // FOV: I sit somewhere around 30 inches from the screen
         // with DPI 96.
         // For an image with height h, the angle theta is
         // 2 atan(h/(30 * 96))
         // which evaluates to about 8 degrees.
         8 deg,
-        2 // half the size of the viewing plane
+        1.4 // half the size of the viewing plane
         // for some reason this is actually double what it
         // should be.
     )
