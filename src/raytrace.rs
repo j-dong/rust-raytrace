@@ -43,6 +43,11 @@ pub fn intersection_color(scene: &Scene, result: &SceneIntersectionResult, ray: 
         let reflect = Ray { origin: pt + rd * 0.001, direction: rd };
         res = res + mat.reflect * ray_color(scene, &reflect, significance * mat.reflect.significance());
     }
+    // TODO: refraction
+    // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
+    // TODO: refactor this method into different impls for
+    // Material trait
+    // such as Phong, Translucent, etc.
     res
 }
 
