@@ -33,7 +33,7 @@ pub fn intersection_color(scene: &Scene, result: &SceneIntersectionResult, ray: 
                     continue;
                 }
             }
-            res = res + mat.diffuse * light.color * dot(&ldir, &result.result.normal);
+            res = res + mat.diffuse * light.color * dot(&ldir, &result.result.normal).abs();
         }
     }
     if mat.reflect.significance() * significance > MIN_SIGNIFICANCE {
