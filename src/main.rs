@@ -47,7 +47,7 @@ fn main() {
         for x in 0..width {
             // transform to (-1, 1)
             let pos = Pnt2::new(
-                ((x as f32) - halfwidth)  * scale
+                ((x as f32) - halfwidth)  * scale,
                 ((y as f32) - halfheight) * scale,
             );
             let color = raytrace::raytrace(&scene, &pos, 1.0);

@@ -87,3 +87,26 @@ impl Shape for Sphere {
         }
     }
 }
+
+/// A plane. Defined by a point on it and the normal vector.
+/// Not the kind that flies.
+pub struct Plane {
+    /// A point on the plane.
+    point: Pnt3,
+    /// The normal vector.
+    normal: Vec3,
+}
+
+impl Shape for Plane {
+    fn intersect(&self, ray: &Ray) -> Option<IntersectionResult> {
+        let t = self.normal.dot(&(self.point - ray.origin)) / self.normal.dot(&ray.direction);
+        if t <= 0.0 {
+            None
+        } else {
+            Some(IntersectionResult {
+                t: t,
+                normal: self.normal,
+            })
+        }
+    }
+}
