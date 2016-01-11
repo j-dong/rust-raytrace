@@ -493,9 +493,17 @@ fn_parse_struct!(
     }
 );
 
+fn_parse_struct!(
+    parse_plane(toks) -> Plane {
+        point: parse_pnt3(toks),
+        normal: parse_vec3(toks),
+    }
+);
+
 fn_parse_box!(
     parse_box_shape(toks) -> Shape {
         Sphere => parse_sphere(toks),
+        Plane => parse_plane(toks),
     }
 );
 

@@ -92,9 +92,9 @@ impl Shape for Sphere {
 /// Not the kind that flies.
 pub struct Plane {
     /// A point on the plane.
-    point: Pnt3,
+    pub point: Pnt3,
     /// The normal vector.
-    normal: Vec3,
+    pub normal: Vec3,
 }
 
 impl Shape for Plane {
