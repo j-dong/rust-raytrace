@@ -25,6 +25,8 @@ impl Material for PhongMaterial {
         let pt = ray.cast(result.t);
         let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
         let specular = self.specular.significance() * significance > MIN_SIGNIFICANCE;
+        // normal should face the viewer; if not, flip it
+        let normal = if dot(&result.normal, &ray.direction) > 0.0 { -result.normal } else { result.normal };
         for light in &scene.lights {
             if diffuse || specular {
                 let (ldir, sray) = light.model.light_shadow_for(&pt);
@@ -38,24 +40,21 @@ impl Material for PhongMaterial {
                     }
                 }
                 if diffuse {
-                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &result.normal));
+                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
                 }
                 if specular {
-                    res = res + self.specular * light.color * clamp_zero(dot(&ray.direction, &(ldir - result.normal * (2.0 * dot(&ldir, &result.normal))))).powf(self.exponent);
+                    res = res + self.specular * light.color * clamp_zero(dot(&-ray.direction, &(ldir - normal * (2.0 * dot(&ldir, &normal))))).powf(self.exponent);
                 }
             }
         }
         if specular {
             let d = ray.direction;
-            let n = result.normal;
-            let rd = d - n * (2.0 * dot(&d, &n));
+            let rd = d - normal * (2.0 * dot(&d, &normal));
             let reflect = Ray { origin: pt + rd * 0.001, direction: rd };
             res = res + self.specular * ray_color(scene, &reflect, significance * self.specular.significance());
         }
         // TODO: refraction
         // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
-        // TODO: refactor this method into different impls for
-        // Material trait
         // such as Phong, Translucent, etc.
         res
     }
