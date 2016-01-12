@@ -45,9 +45,9 @@ impl SimplePerspectiveCamera {
     /// For best results, `look` and `up` should be normalized, but
     /// this is not necessary since the resulting rays are normalized.
     pub fn new(position: &Pnt3, look: &Vec3, up: &Vec3, im_dist: f32) -> SimplePerspectiveCamera {
-        let u = cross(look, up);
-        let v = cross(&u, look);
-        let w = look.clone() * im_dist;
+        let u = cross(look, up).normalize();
+        let v = cross(&u, look).normalize();
+        let w = look.normalize() * im_dist;
         SimplePerspectiveCamera {
             position: position.clone(),
             matrix: Mat3::new(
@@ -64,7 +64,7 @@ impl SimplePerspectiveCamera {
         let cot = (pov / 2.0).tan().recip();
         let im_dist = cot;
         let d = h * cot;
-        let position = focus.clone() - look.clone() * d;
+        let position = focus.clone() - look.normalize() * d;
         SimplePerspectiveCamera::new(&position, look, up, im_dist)
     }
 }
