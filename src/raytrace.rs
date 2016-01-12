@@ -14,6 +14,11 @@ use types::na::dot;
 
 const MIN_SIGNIFICANCE: f32 = 1.0f32 / 256.0 / 2.0;
 
+#[inline]
+fn clamp_zero(x: f32) -> f32 {
+    if x < 0.0 { -x } else { x }
+}
+
 impl Material for PhongMaterial {
     fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f32) -> Color {
         let mut res = self.ambient;
@@ -33,10 +38,10 @@ impl Material for PhongMaterial {
                     }
                 }
                 if diffuse {
-                    res = res + self.diffuse * light.color * dot(&ldir, &result.normal).abs();
+                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &result.normal));
                 }
                 if specular {
-                    res = res + self.specular * light.color * dot(&ray.direction, &(sray.direction - result.normal * (2.0 * dot(&sray.direction, &result.normal)))).abs().powf(self.exponent);
+                    res = res + self.specular * light.color * dot(&ray.direction, &(sray.direction - result.normal * clamp_zero((2.0 * dot(&sray.direction, &result.normal))))).powf(self.exponent);
                 }
             }
         }

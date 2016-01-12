@@ -56,7 +56,7 @@
             material: PhongMaterial {
                 diffuse: rgb(0.3, 0.34, 0.4)
                 specular: rgb(0.5, 0.5, 0.5)
-                exponent: 4.0
+                exponent: 5.0
                 ambient: rgb(0.05, 0.05, 0.05)
             }
         }
