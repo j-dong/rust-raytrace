@@ -34,7 +34,7 @@ impl Material for PhongMaterial {
                 if let Some(intersection) = scene.intersect(ray) {
                     if match light.model.sq_shadow_range(&pt) {
                         Some(r2) => intersection.result.t * intersection.result.t < r2,
-                        None => false
+                        None => true
                     } {
                         continue;
                     }
@@ -43,7 +43,7 @@ impl Material for PhongMaterial {
                     res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
                 }
                 if specular {
-                    res = res + self.specular * light.color * clamp_zero(dot(&-ray.direction, &(ldir - normal * (2.0 * dot(&ldir, &normal))))).powf(self.exponent);
+                    res = res + self.specular * light.color * clamp_zero(dot(&ray.direction, &(ldir - normal * (2.0 * dot(&ldir, &normal))))).powf(self.exponent);
                 }
             }
         }
