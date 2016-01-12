@@ -41,7 +41,7 @@ impl Material for PhongMaterial {
                     res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &result.normal));
                 }
                 if specular {
-                    res = res + self.specular * light.color * dot(&ray.direction, &(sray.direction - result.normal * clamp_zero((2.0 * dot(&sray.direction, &result.normal))))).powf(self.exponent);
+                    res = res + self.specular * light.color * dot(&ray.direction, &(ldir - result.normal * clamp_zero((2.0 * dot(&ldir, &result.normal))))).powf(self.exponent);
                 }
             }
         }

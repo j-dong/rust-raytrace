@@ -55,6 +55,8 @@ pub struct Object {
 /// A light that can project rays onto an object.
 pub trait LightModel {
     /// Get the light direction for lighting a specific point.
+    /// This is the vector from the point to the light, not the
+    /// light's direction.
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3;
     /// The the shadow ray used to project back onto the light
     /// to see if it intersects any objects on the way there.
@@ -64,7 +66,7 @@ pub trait LightModel {
     /// Combination of light direction and shadow ray.
     fn light_shadow_for(&self, pt: &Pnt3) -> (Vec3, Ray) {
         let dir = self.light_dir_for(pt);
-        (dir, Ray { origin: pt.clone(), direction: -dir })
+        (dir, Ray { origin: pt.clone(), direction: dir })
     }
     /// Range of the shadow ray. For point lights this is important
     /// otherwise geometry past the light can occlude the lighting.
@@ -93,7 +95,7 @@ pub struct PointLight {
 
 impl LightModel for PointLight {
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3 {
-        Vec3::new(pt.x - self.location.x, pt.y - self.location.y, pt.z - self.location.z).normalize()
+        Vec3::new(self.location.x - pt.x, self.location.y - pt.y, self.location.z - pt.z).normalize()
     }
 
     fn sq_shadow_range(&self, pt: &Pnt3) -> Option<f32> {
@@ -113,7 +115,7 @@ pub struct DirectionalLight {
 
 impl LightModel for DirectionalLight {
     fn light_dir_for(&self, _: &Pnt3) -> Vec3 {
-        self.direction
+        -self.direction
     }
 }
 
