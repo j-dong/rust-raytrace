@@ -43,6 +43,24 @@ pub struct PhongMaterial {
     pub ambient: Color,
 }
 
+/// Material using Blinn-Phong, but with a Fresnel term.
+/// There is little effect on metals, but for dielectrics,
+/// there is a dramatic effect.
+pub struct FresnelMaterial {
+    /// Diffuse color of Lambertian reflectance.
+    pub diffuse: Color,
+    /// Color of specular reflectance. Currently glossy reflection is not implemented, and thus
+    /// only highlights will be glossy.
+    pub specular: Color,
+    /// Shininess (specular exponent) in the Phong reflection model.
+    pub exponent: f64,
+    /// Ambient light (light from scattered light in the environment). Currently ambient
+    /// occlusion is not implemented.
+    pub ambient: Color,
+    /// Index of refraction. The IOR of air is 1.00. There are tables on the Internet.
+    pub ior: f64,
+}
+
 /// An object in a scene. The `Object` struct contains everything
 /// necessary to render the object.
 pub struct Object {
