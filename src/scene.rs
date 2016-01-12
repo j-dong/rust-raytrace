@@ -61,7 +61,7 @@ pub trait LightModel {
     /// The the shadow ray used to project back onto the light
     /// to see if it intersects any objects on the way there.
     fn shadow_ray_for(&self, pt: &Pnt3) -> Ray {
-        Ray { origin: pt.clone(), direction: -self.light_dir_for(pt) }
+        Ray { origin: pt.clone(), direction: self.light_dir_for(pt) }
     }
     /// Combination of light direction and shadow ray.
     fn light_shadow_for(&self, pt: &Pnt3) -> (Vec3, Ray) {
