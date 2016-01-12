@@ -12,15 +12,15 @@ use scene::*;
 
 use types::na::dot;
 
-const MIN_SIGNIFICANCE: f32 = 1.0f32 / 256.0 / 2.0;
+const MIN_SIGNIFICANCE: f64 = 1.0f64 / 256.0 / 2.0;
 
 #[inline]
-fn clamp_zero(x: f32) -> f32 {
+fn clamp_zero(x: f64) -> f64 {
     if x < 0.0 { 0.0 } else { x }
 }
 
 impl Material for PhongMaterial {
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f32) -> Color {
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64) -> Color {
         let mut res = self.ambient;
         let pt = ray.cast(result.t);
         let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
@@ -70,7 +70,7 @@ pub fn background_color(ray: &Ray) -> Color {
 /// Trace a ray to an object or nothing and return the result of
 /// color computation. Significance is a float that is decreased
 /// when a ray is generated recursively.
-pub fn ray_color(scene: &Scene, ray: &Ray, significance: f32) -> Color {
+pub fn ray_color(scene: &Scene, ray: &Ray, significance: f64) -> Color {
     // find the object that the ray hits and compute the color
     match scene.intersect(ray) {
         Some(result) => result.object.material.color(scene, &result.result, ray, significance),
@@ -79,6 +79,6 @@ pub fn ray_color(scene: &Scene, ray: &Ray, significance: f32) -> Color {
 }
 
 /// Project the position onto the scene and trace the ray.
-pub fn raytrace(scene: &Scene, pos: &Pnt2, significance: f32) -> Color {
+pub fn raytrace(scene: &Scene, pos: &Pnt2, significance: f64) -> Color {
     ray_color(scene, &scene.camera.project(pos), significance)
 }

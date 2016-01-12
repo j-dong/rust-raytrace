@@ -6,7 +6,7 @@ use std::str::{Chars, FromStr};
 use std::fmt;
 use std::error::Error;
 use std::iter::{Iterator};
-use std::f32::consts;
+use std::f64::consts;
 
 use ::camera::*;
 use ::scene::*;
@@ -195,7 +195,7 @@ impl<I: Processable> Expectable<I::Item> for Acceptor<I> where I::Item: fmt::Deb
 #[derive(Debug)]
 enum Token {
     Identifier(String),
-    Number(f32),
+    Number(f64),
     LBrace,
     RBrace,
     LBracket,
@@ -217,7 +217,7 @@ pub enum SyntaxErrorType {
         /// The input "number"
         num: String,
         /// The parse error (from Rust's `from_str()` method)
-        err: <f32 as FromStr>::Err },
+        err: <f64 as FromStr>::Err },
     /// Expected something and got another. Most common syntax error.
     Expect(String),
     /// Undefined field given
@@ -323,7 +323,7 @@ impl<'a> Iterator for Tokenizer<'a> {
             'A' ... 'Z' | 'a' ... 'z' | '_' => Some(Token::Identifier(self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' => true, _ => false}}).collect())),
             '0' ... '9' | '.' | '-' | '+' => {
                 let num = self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' | '.' | '-' | '+' => true, _ => false}}).collect::<String>();
-                match f32::from_str(&num) {
+                match f64::from_str(&num) {
                     Ok(e) => Some(Token::Number(e)),
                     Err(e) => { self.error = Some(SyntaxError { etype: SyntaxErrorType::InvalidNumber { num: num, err: e }, location: self.acceptor.iter.location }); None }
                 }
@@ -358,13 +358,13 @@ pub fn deserialize(text: &String) -> Result<Scene, SyntaxError> {
 }
 
 #[inline]
-fn parse_f32(toks: &mut Acceptor<Tokenizer>) -> Result<f32, SyntaxError> {
+fn parse_f64(toks: &mut Acceptor<Tokenizer>) -> Result<f64, SyntaxError> {
     Ok(match try!(toks.expect(|t| {match *t {Token::Number(_) => true, _ => false}}, "Number")) { Token::Number(x) => x, _ => panic!("at the disco") })
 }
 
 #[inline]
 fn parse_i32(toks: &mut Acceptor<Tokenizer>) -> Result<i32, SyntaxError> {
-    let num = try!(parse_f32(toks));
+    let num = try!(parse_f64(toks));
     if num.fract().abs() > 0.01 {
         println!("Warning: {} stored as integer", num);
     }
@@ -374,8 +374,8 @@ fn parse_i32(toks: &mut Acceptor<Tokenizer>) -> Result<i32, SyntaxError> {
     Ok(num.round() as i32)
 }
 
-fn parse_ang(toks: &mut Acceptor<Tokenizer>) -> Result<f32, SyntaxError> {
-    let num = try!(parse_f32(toks));
+fn parse_ang(toks: &mut Acceptor<Tokenizer>) -> Result<f64, SyntaxError> {
+    let num = try!(parse_f64(toks));
     if let Token::Identifier(unit) = try!(toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
         match unit.as_ref() {
             "deg" => Ok(num * consts::PI / 180.0),
@@ -390,22 +390,22 @@ fn parse_ang(toks: &mut Acceptor<Tokenizer>) -> Result<f32, SyntaxError> {
 
 fn parse_vec3(toks: &mut Acceptor<Tokenizer>) -> Result<Vec3, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
-    let x = try!(parse_f32(toks));
+    let x = try!(parse_f64(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let y = try!(parse_f32(toks));
+    let y = try!(parse_f64(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let z = try!(parse_f32(toks));
+    let z = try!(parse_f64(toks));
     try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
     Ok(Vec3::new(x, y, z))
 }
 
 fn parse_pnt3(toks: &mut Acceptor<Tokenizer>) -> Result<Pnt3, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
-    let x = try!(parse_f32(toks));
+    let x = try!(parse_f64(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let y = try!(parse_f32(toks));
+    let y = try!(parse_f64(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let z = try!(parse_f32(toks));
+    let z = try!(parse_f64(toks));
     try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
     Ok(Pnt3::new(x, y, z))
 }
@@ -413,11 +413,11 @@ fn parse_pnt3(toks: &mut Acceptor<Tokenizer>) -> Result<Pnt3, SyntaxError> {
 fn parse_color(toks: &mut Acceptor<Tokenizer>) -> Result<Color, SyntaxError> {
     try!(toks.expect(|t| {match *t {Token::Identifier(ref x) => x == "rgb", _ => false}}, "Identifier(\"rgb\")"));
     try!(toks.expect(|t| {match *t {Token::LParen => true, _ => false}}, "LParen"));
-    let r = try!(parse_f32(toks));
+    let r = try!(parse_f64(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let g = try!(parse_f32(toks));
+    let g = try!(parse_f64(toks));
     try!(toks.expect(|t| {match *t {Token::Comma => true, _ => false}}, "Comma"));
-    let b = try!(parse_f32(toks));
+    let b = try!(parse_f64(toks));
     try!(toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
     Ok(Color::from_rgb(r, g, b))
 }
@@ -504,7 +504,7 @@ fn parse_vec<E>(toks: &mut Acceptor<Tokenizer>, parser: fn(&mut Acceptor<Tokeniz
 fn_parse_struct!(
     parse_sphere(toks) -> Sphere {
         center: parse_pnt3(toks),
-        radius: parse_f32(toks),
+        radius: parse_f64(toks),
     }
 );
 
@@ -528,7 +528,7 @@ fn_parse_function!(
         position: parse_pnt3(toks),
         look: parse_vec3(toks),
         up: parse_vec3(toks),
-        im_dist: parse_f32(toks),
+        im_dist: parse_f64(toks),
     ) => SimplePerspectiveCamera::new(&position, &look, &up, im_dist)
 );
 
@@ -539,7 +539,7 @@ fn_parse_function!(
         look: parse_vec3(toks),
         up: parse_vec3(toks),
         pov: parse_ang(toks),
-        h: parse_f32(toks),
+        h: parse_f64(toks),
     ) => SimplePerspectiveCamera::look_at(&focus, &look, &up, pov, h)
 );
 
@@ -559,7 +559,7 @@ fn_parse_struct!(
     parse_phong_material(toks) -> PhongMaterial {
         diffuse: parse_color(toks),
         specular: parse_color(toks),
-        exponent: parse_f32(toks),
+        exponent: parse_f64(toks),
         ambient: parse_color(toks),
     }
 );

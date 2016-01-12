@@ -19,7 +19,7 @@ impl Ray {
     /// Casts the ray. `t` is the length of the casted segment.
     /// Returns the point `t` away from the ray's origin in the
     /// ray's direction (assuming the direction is normalized).
-    pub fn cast(&self, t: f32) -> Pnt3 {
+    pub fn cast(&self, t: f64) -> Pnt3 {
         self.origin + self.direction * t
     }
 }
@@ -27,7 +27,7 @@ impl Ray {
 /// The result of an intersection between a shape and a ray.
 pub struct IntersectionResult {
     /// The `t` value at which the ray hits the shape.
-    pub t: f32,
+    pub t: f64,
     /// The normal of the shape at the point of intersection.
     pub normal: Vec3,
 }
@@ -44,7 +44,7 @@ pub struct Sphere {
     /// The center of the sphere.
     pub center: Pnt3,
     /// The radius of the sphere.
-    pub radius: f32,
+    pub radius: f64,
 }
 
 impl Shape for Sphere {

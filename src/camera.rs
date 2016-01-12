@@ -44,7 +44,7 @@ impl SimplePerspectiveCamera {
     ///
     /// For best results, `look` and `up` should be normalized, but
     /// this is not necessary since the resulting rays are normalized.
-    pub fn new(position: &Pnt3, look: &Vec3, up: &Vec3, im_dist: f32) -> SimplePerspectiveCamera {
+    pub fn new(position: &Pnt3, look: &Vec3, up: &Vec3, im_dist: f64) -> SimplePerspectiveCamera {
         let u = cross(look, up).normalize();
         let v = cross(&u, look).normalize();
         let w = look.normalize() * im_dist;
@@ -60,7 +60,7 @@ impl SimplePerspectiveCamera {
     /// Create a new `SimplePerspectiveCamera` from the given focus
     /// point, viewing direction, and up vector, POV angle, and half
     /// the focus height.
-    pub fn look_at(focus: &Pnt3, look: &Vec3, up: &Vec3, pov: f32, h: f32) -> SimplePerspectiveCamera {
+    pub fn look_at(focus: &Pnt3, look: &Vec3, up: &Vec3, pov: f64, h: f64) -> SimplePerspectiveCamera {
         let cot = (pov / 2.0).tan().recip();
         let im_dist = cot;
         let d = h * cot;

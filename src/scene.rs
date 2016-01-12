@@ -26,7 +26,7 @@ pub trait Material {
     /// Get the color from a ray intersection; generally involves
     /// getting the interaction from the object's material. Significance is a float that is decreased
     /// when a ray is generated recursively.
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f32) -> Color;
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64) -> Color;
 }
 
 /// Material using the Phong reflection model.
@@ -37,7 +37,7 @@ pub struct PhongMaterial {
     /// only highlights will be glossy.
     pub specular: Color,
     /// Shininess (specular exponent) in the Phong reflection model.
-    pub exponent: f32,
+    pub exponent: f64,
     /// Ambient light (light from scattered light in the environment). Currently ambient
     /// occlusion is not implemented.
     pub ambient: Color,
@@ -60,11 +60,11 @@ pub trait LightModel {
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3;
     /// Range of the shadow ray. For point lights this is important
     /// otherwise geometry past the light can occlude the lighting.
-    fn shadow_range(&self, pt: &Pnt3) -> Option<f32> { None }
+    fn shadow_range(&self, pt: &Pnt3) -> Option<f64> { None }
     /// Square of the range of the shadow ray, used to avoid the
     /// `sqrt()` operation.
     #[inline]
-    fn sq_shadow_range(&self, pt: &Pnt3) -> Option<f32> {
+    fn sq_shadow_range(&self, pt: &Pnt3) -> Option<f64> {
         self.shadow_range(pt).map(|x| x * x)
     }
 }
@@ -88,11 +88,11 @@ impl LightModel for PointLight {
         Vec3::new(self.location.x - pt.x, self.location.y - pt.y, self.location.z - pt.z).normalize()
     }
 
-    fn sq_shadow_range(&self, pt: &Pnt3) -> Option<f32> {
+    fn sq_shadow_range(&self, pt: &Pnt3) -> Option<f64> {
         Some(self.location.dist(pt))
     }
 
-    fn shadow_range(&self, pt: &Pnt3) -> Option<f32> {
+    fn shadow_range(&self, pt: &Pnt3) -> Option<f64> {
         Some(self.location.sqdist(pt))
     }
 }
@@ -129,10 +129,10 @@ pub struct SceneIntersectionResult<'a> {
 }
 
 #[derive(PartialEq, PartialOrd)]
-struct FloatNotNan(f32);
+struct FloatNotNan(f64);
 
 impl FloatNotNan {
-    fn new(v: f32) -> Option<FloatNotNan> {
+    fn new(v: f64) -> Option<FloatNotNan> {
         if v.is_nan() {
             None
         } else {

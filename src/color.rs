@@ -7,18 +7,18 @@
 use std::ops::{Add, Sub, Mul, Div};
 
 /// A color which can be transformed into RGB components. Currently
-/// colors are stored as three `f32` RGB components.
+/// colors are stored as three `f64` RGB components.
 ///
 /// All components are normally in the range [0, 1], but colors can
 /// go beyond that (e.g. when adding colors).
 #[derive(Clone, Copy, Default, PartialEq)]
 pub struct Color {
     /// The red component of the color.
-    pub r: f32,
+    pub r: f64,
     /// The green component of the color.
-    pub g: f32,
+    pub g: f64,
     /// The blue component of the color.
-    pub b: f32,
+    pub b: f64,
 }
 
 /// The color black.
@@ -52,21 +52,21 @@ impl Div for Color {
     }
 }
 
-impl Mul<f32> for Color {
+impl Mul<f64> for Color {
     type Output = Color;
-    fn mul(self, other: f32) -> Color {
+    fn mul(self, other: f64) -> Color {
         Color {r: self.r * other, g: self.g * other, b: self.b * other}
     }
 }
 
-impl Div<f32> for Color {
+impl Div<f64> for Color {
     type Output = Color;
-    fn div(self, other: f32) -> Color {
+    fn div(self, other: f64) -> Color {
         Color {r: self.r / other, g: self.g / other, b: self.b / other}
     }
 }
 
-fn clamp_color_val(val: f32) -> u8 {
+fn clamp_color_val(val: f64) -> u8 {
     let x = val * 256.0;
     if x < 0.0 {0} else if x >= 255.0 {255} else {x.trunc() as u8}
 }
@@ -74,7 +74,7 @@ fn clamp_color_val(val: f32) -> u8 {
 impl Color {
     /// Creates a color from RGB components. The resulting color
     /// has components are that not clamped to [0, 1).
-    pub fn from_rgb(r: f32, g: f32, b: f32) -> Color {
+    pub fn from_rgb(r: f64, g: f64, b: f64) -> Color {
         Color {r: r, g: g, b: b}
     }
 
@@ -100,7 +100,7 @@ impl Color {
     /// Some indication of significance; if 0, unsignificant; if
     /// greater than 0, significant. Used to disable shading when
     /// unnecessary.
-    pub fn significance(&self) -> f32 {
+    pub fn significance(&self) -> f64 {
         self.r + self.g + self.b
     }
 }

@@ -37,16 +37,16 @@ fn main() {
     let bytewidth = bmp::write_header(&mut file_handle, width, height)
                     .ok().expect("error writing BMP header");
     // render image
-    let halfwidth  = (width  as f32) / 2.0;
-    let halfheight = (height as f32) / 2.0;
+    let halfwidth  = (width  as f64) / 2.0;
+    let halfheight = (height as f64) / 2.0;
     let scale = (1.0 / halfwidth).max(1.0 / halfheight);
     let mut row: Vec<u8> = vec![0; bytewidth as usize];
     for y in 0..height {
         for x in 0..width {
             // transform to (-1, 1)
             let pos = Pnt2::new(
-                ((x as f32) - halfwidth)  * scale,
-                ((y as f32) - halfheight) * scale,
+                ((x as f64) - halfwidth)  * scale,
+                ((y as f64) - halfheight) * scale,
             );
             let color = raytrace::raytrace(&scene, &pos, 1.0);
             color.write_bgr(&mut row, x as usize);
