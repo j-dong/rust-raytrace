@@ -31,7 +31,7 @@ impl Material for PhongMaterial {
             if diffuse || specular {
                 let (ldir, sray) = light.model.light_shadow_for(&pt);
                 // check if in shadow
-                if let Some(intersection) = scene.intersect(sray) {
+                if let Some(intersection) = scene.intersect(&sray) {
                     if match light.model.sq_shadow_range(&pt) {
                         Some(r2) => intersection.result.t * intersection.result.t < r2,
                         None => true
