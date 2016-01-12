@@ -102,6 +102,7 @@ impl Material for FresnelMaterial {
         // such as Phong, Translucent, etc.
         res
     }
+}
 
 /// Get the color when a ray does not intersect any geometry.
 /// Later on this function may compute sky color using scattering
