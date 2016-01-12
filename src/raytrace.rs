@@ -16,7 +16,7 @@ const MIN_SIGNIFICANCE: f32 = 1.0f32 / 256.0 / 2.0;
 
 #[inline]
 fn clamp_zero(x: f32) -> f32 {
-    if x < 0.0 { -x } else { x }
+    if x < 0.0 { 0.0 } else { x }
 }
 
 impl Material for PhongMaterial {
@@ -41,7 +41,7 @@ impl Material for PhongMaterial {
                     res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &result.normal));
                 }
                 if specular {
-                    res = res + self.specular * light.color * dot(&ray.direction, &(ldir - result.normal * clamp_zero((2.0 * dot(&ldir, &result.normal))))).powf(self.exponent);
+                    res = res + self.specular * light.color * clamp_zero(dot(&ray.direction, &(ldir - result.normal * (2.0 * dot(&ldir, &result.normal))))).powf(self.exponent);
                 }
             }
         }
