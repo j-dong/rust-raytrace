@@ -42,8 +42,6 @@ fn main() {
     let scale = (1.0 / halfwidth).max(1.0 / halfheight);
     let mut row: Vec<u8> = vec![0; bytewidth as usize];
     for y in 0..height {
-        // actual image y coordinate
-        let y = height - 1 - y;
         for x in 0..width {
             // transform to (-1, 1)
             let pos = Pnt2::new(
