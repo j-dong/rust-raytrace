@@ -10,7 +10,7 @@ use color;
 use color::Color;
 use scene::*;
 
-use types::na::dot;
+use types::na::{dot, Norm};
 
 const MIN_SIGNIFICANCE: f64 = 1.0f64 / 256.0 / 2.0;
 
@@ -43,7 +43,7 @@ impl Material for PhongMaterial {
                     res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
                 }
                 if specular {
-                    res = res + self.specular * light.color * clamp_zero(dot(&ray.direction, &(ldir - normal * (2.0 * dot(&ldir, &normal))))).powf(self.exponent);
+                    res = res + self.specular * light.color * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
                 }
             }
         }

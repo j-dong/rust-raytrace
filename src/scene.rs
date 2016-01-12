@@ -29,7 +29,7 @@ pub trait Material {
     fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64) -> Color;
 }
 
-/// Material using the Phong reflection model.
+/// Material using the Blinn-Phong reflection model.
 pub struct PhongMaterial {
     /// Diffuse color of Lambertian reflectance.
     pub diffuse: Color,
