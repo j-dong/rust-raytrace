@@ -50,7 +50,7 @@ impl Material for PhongMaterial {
         if specular {
             let d = ray.direction;
             let rd = d - normal * (2.0 * dot(&d, &normal));
-            let reflect = Ray { origin: pt + rd * 0.001, direction: rd };
+            let reflect = Ray { origin: pt + rd * 0.00001, direction: rd };
             res = res + self.specular * ray_color(scene, &reflect, significance * self.specular.significance());
         }
         // TODO: refraction

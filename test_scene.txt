@@ -64,7 +64,7 @@
     lights: [
         {
             model: DirectionalLight {
-                direction: (0.0, 0.0, 1.0)
+                direction: (0.0, 0.0, -1.0)
             }
             color: rgb(1.0, 1.0, 1.0)
         }

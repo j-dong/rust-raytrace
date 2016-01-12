@@ -66,7 +66,7 @@ pub trait LightModel {
     /// Combination of light direction and shadow ray.
     fn light_shadow_for(&self, pt: &Pnt3) -> (Vec3, Ray) {
         let dir = self.light_dir_for(pt);
-        (dir, Ray { origin: pt.clone(), direction: dir })
+        (dir, Ray { origin: pt.clone() + dir * 0.00001, direction: dir })
     }
     /// Range of the shadow ray. For point lights this is important
     /// otherwise geometry past the light can occlude the lighting.
