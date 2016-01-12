@@ -51,11 +51,12 @@
         {
             bounds: Plane {
                 point: (0, -0.704124145, 0)
-                normal: (0, -1.0, 0)
+                normal: (0, 1.0, 0)
             }
             material: PhongMaterial {
                 diffuse: rgb(0.3, 0.34, 0.4)
                 specular: rgb(0.5, 0.5, 0.5)
+                specular: rgb(0.0, 0.0, 0.0)
                 exponent: 5.0
                 ambient: rgb(0.05, 0.05, 0.05)
             }
@@ -72,7 +73,7 @@
     camera: SimplePerspectiveCamera look_at(
         (0, 0, 0), // focus
         (0, -0.2, -1), // look direction
-        (0, -1, 0),  // up vector
+        (0, 1, 0),  // up vector
         // FOV: I sit somewhere around 30 inches from the screen
         // with DPI 96.
         // For an image with height h, the angle theta is
