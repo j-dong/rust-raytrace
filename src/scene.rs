@@ -58,16 +58,6 @@ pub trait LightModel {
     /// This is the vector from the point to the light, not the
     /// light's direction.
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3;
-    /// The the shadow ray used to project back onto the light
-    /// to see if it intersects any objects on the way there.
-    fn shadow_ray_for(&self, pt: &Pnt3) -> Ray {
-        Ray { origin: pt.clone(), direction: self.light_dir_for(pt) }
-    }
-    /// Combination of light direction and shadow ray.
-    fn light_shadow_for(&self, pt: &Pnt3) -> (Vec3, Ray) {
-        let dir = self.light_dir_for(pt);
-        (dir, Ray { origin: pt.clone() + dir * 0.00001, direction: dir })
-    }
     /// Range of the shadow ray. For point lights this is important
     /// otherwise geometry past the light can occlude the lighting.
     fn shadow_range(&self, pt: &Pnt3) -> Option<f32> { None }

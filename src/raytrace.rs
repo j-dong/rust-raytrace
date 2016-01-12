@@ -29,12 +29,12 @@ impl Material for PhongMaterial {
         let normal = if dot(&result.normal, &ray.direction) > 0.0 { -result.normal } else { result.normal };
         for light in &scene.lights {
             if diffuse || specular {
-                let (ldir, sray) = light.model.light_shadow_for(&pt);
+                let ldir = light.model.light_dir_for(&pt);
                 // check if in shadow
-                if let Some(intersection) = scene.intersect(&sray) {
+                if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
                     if match light.model.sq_shadow_range(&pt) {
                         Some(r2) => intersection.result.t * intersection.result.t < r2,
-                        None => true
+                        None => true,
                     } {
                         continue;
                     }
