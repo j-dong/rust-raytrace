@@ -66,6 +66,12 @@
             model: DirectionalLight {
                 direction: (0.0, 0.0, -1.0)
             }
+            color: rgb(0.2, 0.2, 0.2)
+        }
+        {
+            model: PointLight {
+                location: (1.3, 5.0, 0.3)
+            }
             color: rgb(1.0, 1.0, 1.0)
         }
     ]
