@@ -53,9 +53,6 @@ impl Material for PhongMaterial {
             let reflect = Ray { origin: pt + rd * 0.00001, direction: rd };
             res = res + self.specular * ray_color(scene, &reflect, significance * self.specular.significance());
         }
-        // TODO: refraction
-        // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
-        // such as Phong, Translucent, etc.
         res
     }
 }
@@ -64,18 +61,17 @@ impl Material for FresnelMaterial {
     fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64) -> Color {
         let mut res = self.ambient;
         let pt = ray.cast(result.t);
-        let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
-        let specular = self.specular.significance() * significance > MIN_SIGNIFICANCE;
         let nd = dot(&result.normal, &ray.direction);
         // normal should face the viewer; if not, flip it
         let normal = if nd > 0.0 { -result.normal } else { result.normal };
         // I think the Schlick approximation should work well
-        // TODO: calculate Fresnel term
         let r0 = (self.ior - 1.0) / (self.ior + 1.0);
         let r0 = r0 * r0;
         let omcos = 1.0 - nd.abs();
         let omcos2 = omcos * omcos;
         let fresnel = r0 + (1.0 - r0) * omcos2 * omcos2 * omcos;
+        let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
+        let specular = self.specular.significance() * fresnel * significance > MIN_SIGNIFICANCE;
         for light in &scene.lights {
             if diffuse || specular {
                 let ldir = light.model.light_dir_for(&pt);
@@ -104,7 +100,65 @@ impl Material for FresnelMaterial {
         }
         // TODO: refraction
         // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
-        // such as Phong, Translucent, etc.
+        res
+    }
+}
+
+impl Material for TransparentMaterial {
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64) -> Color {
+        let mut res = color::BLACK;
+        let pt = ray.cast(result.t);
+        let nd = dot(&result.normal, &ray.direction);
+        // normal should face the viewer; if not, flip it
+        let normal = if nd > 0.0 { -result.normal } else { result.normal };
+        // calculate refraction vector
+        let ndv = dot(&normal, &ray.direction);
+        let sinT2 = ndv * ndv * (1.0 - ndv * ndv);
+        let refract = if sinT2 < 1.0 {
+            let n = 1.0 / self.ior;
+            let cosT = (1.0 - sinT2).sqrt();
+            Some(ray.direction * n - normal * (n * ndv + cosT))
+        } else {
+            None
+        };
+        // I think the Schlick approximation should work well
+        let r0 = (self.ior - 1.0) / (self.ior + 1.0);
+        let r0 = r0 * r0;
+        let omcos = 1.0 - nd.abs();
+        let omcos2 = omcos * omcos;
+        let fresnel = if refract.is_some() { r0 + (1.0 - r0) * omcos2 * omcos2 * omcos } else { 1.0 };
+        let specular = self.specular.significance() * fresnel * significance > MIN_SIGNIFICANCE;
+        for light in &scene.lights {
+            if specular {
+                let ldir = light.model.light_dir_for(&pt);
+                // check if in shadow
+                if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
+                    if match light.model.sq_shadow_range(&pt) {
+                        Some(r2) => intersection.result.t * intersection.result.t < r2,
+                        None => true,
+                    } {
+                        continue;
+                    }
+                }
+                if specular {
+                    res = res + self.specular * light.color * fresnel * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
+                }
+            }
+        }
+        if specular {
+            let rd = ray.direction - normal * (2.0 * ndv);
+            let reflect = Ray { origin: pt + rd * 0.00001, direction: rd };
+            res = res + self.specular * ray_color(scene, &reflect, fresnel * significance * self.specular.significance()) * fresnel;
+        }
+        if fresnel < 1.0 {
+            match refract {
+                None => (),
+                Some(refract) => {
+                    let omf = 1.0 - fresnel;
+                    res = res + ray_color(scene, &Ray { origin: pt + refract * 0.00001, direction: refract }, omf * significance) * omf;
+                }
+            }
+        }
         res
     }
 }

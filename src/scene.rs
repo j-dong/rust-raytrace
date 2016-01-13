@@ -61,6 +61,18 @@ pub struct FresnelMaterial {
     pub ior: f64,
 }
 
+/// Material using Blinn-Phong that transmits light. Suitable for materials like glass
+/// which are clear. The amount of reflectance is determined using the Fresnel equation.
+pub struct TransparentMaterial {
+    /// Color of specular reflectance. Currently glossy reflection is not implemented, and thus
+    /// only highlights will be glossy.
+    pub specular: Color,
+    /// Shininess (specular exponent) in the Phong reflection model.
+    pub exponent: f64,
+    /// Index of refraction. The IOR of air is 1.00. There are tables on the Internet.
+    pub ior: f64,
+}
+
 /// An object in a scene. The `Object` struct contains everything
 /// necessary to render the object.
 pub struct Object {

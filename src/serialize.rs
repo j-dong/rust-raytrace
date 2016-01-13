@@ -553,6 +553,7 @@ fn_parse_box!(
     parse_box_material(toks) -> Material {
         PhongMaterial => parse_phong_material(toks),
         FresnelMaterial => parse_fresnel_material(toks),
+        TransparentMaterial => parse_transparent_material(toks),
     }
 );
 
@@ -571,6 +572,14 @@ fn_parse_struct!(
         specular: parse_color(toks),
         exponent: parse_f64(toks),
         ambient: parse_color(toks),
+        ior: parse_f64(toks),
+    }
+);
+
+fn_parse_struct!(
+    parse_transparent_material(toks) -> TransparentMaterial {
+        specular: parse_color(toks),
+        exponent: parse_f64(toks),
         ior: parse_f64(toks),
     }
 );
