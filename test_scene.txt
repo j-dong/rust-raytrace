@@ -17,11 +17,12 @@
                 center: (-0.5, -0.204124145, -0.288675135)
                 radius: 0.5
             }
-            material: PhongMaterial {
-                diffuse: rgb(0.0, 1.0, 1.0)
-                specular: rgb(0.2, 0.2, 0.2)
-                exponent: 5.0
+            material: FresnelMaterial {
+                diffuse: rgb(0.0, 0.6, 0.6)
+                specular: rgb(0.8, 0.8, 0.8)
+                exponent: 3.0
                 ambient: rgb(0.05, 0.05, 0.05)
+                ior: 1.5191 // rubber
             }
         }
         {

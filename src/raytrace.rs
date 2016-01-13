@@ -66,11 +66,16 @@ impl Material for FresnelMaterial {
         let pt = ray.cast(result.t);
         let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
         let specular = self.specular.significance() * significance > MIN_SIGNIFICANCE;
+        let nd = dot(&result.normal, &ray.direction);
         // normal should face the viewer; if not, flip it
-        let normal = if dot(&result.normal, &ray.direction) > 0.0 { -result.normal } else { result.normal };
+        let normal = if nd > 0.0 { -result.normal } else { result.normal };
         // I think the Schlick approximation should work well
         // TODO: calculate Fresnel term
-        let fresnel:f64 = 1.0f64;
+        let r0 = (self.ior - 1.0) / (self.ior + 1.0);
+        let r0 = r0 * r0;
+        let omcos = 1.0 - nd.abs();
+        let omcos2 = omcos * omcos;
+        let fresnel = r0 + (1.0 - r0) * omcos2 * omcos2 * omcos;
         for light in &scene.lights {
             if diffuse || specular {
                 let ldir = light.model.light_dir_for(&pt);
