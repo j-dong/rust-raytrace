@@ -432,7 +432,7 @@ macro_rules! fn_parse_struct {
                 if let Token::Identifier(name) = try!($toks.expect(|t| match *t {Token::Identifier(_) => true, _ => false}, "Identifier")) {
                     match name.as_ref() {
                         $( stringify!($field) => {
-                            try!($toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "LBrace"));
+                            try!($toks.expect(|t| {match *t {Token::Colon => true, _ => false}}, "Colon"));
                             $field = Some(try!($parser));
                         }, )*
                         _ => return Err(SyntaxError { etype: SyntaxErrorType::Undefined(name), location: $toks.iter.location }),
