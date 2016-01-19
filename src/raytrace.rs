@@ -140,9 +140,7 @@ impl Material for TransparentMaterial {
                         continue;
                     }
                 }
-                if specular {
-                    res = res + self.specular * light.color * fresnel * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
-                }
+                res = res + self.specular * light.color * fresnel * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
             }
         }
         if specular {
