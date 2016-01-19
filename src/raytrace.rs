@@ -155,6 +155,7 @@ impl Material for TransparentMaterial {
                 None => (),
                 Some(refract) => {
                     let omf = 1.0 - fresnel;
+                    let refract = refract.normalize();
                     res = res + ray_color(scene, &Ray { origin: pt + refract * 0.00001, direction: refract }, omf * significance) * omf;
                 }
             }
