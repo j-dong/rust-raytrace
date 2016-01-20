@@ -90,7 +90,7 @@ pub trait LightModel {
     fn light_dir_for(&self, pt: &Pnt3) -> Vec3;
     /// Range of the shadow ray. For point lights this is important
     /// otherwise geometry past the light can occlude the lighting.
-    fn shadow_range(&self, pt: &Pnt3) -> Option<f64> { None }
+    fn shadow_range(&self, _: &Pnt3) -> Option<f64> { None }
     /// Square of the range of the shadow ray, used to avoid the
     /// `sqrt()` operation.
     #[inline]

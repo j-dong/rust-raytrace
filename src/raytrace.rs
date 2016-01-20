@@ -114,10 +114,10 @@ impl Material for TransparentMaterial {
         // calculate refraction vector
         let ndv = dot(&normal, &ray.direction);
         let n = 1.0 / self.ior;
-        let sinT2 = n * n * (1.0 - nd * nd);
-        let refract = if sinT2 < 1.0 {
-            let cosT = (1.0 - sinT2).sqrt();
-            Some(ray.direction * n - normal * (n * nd.abs() + cosT))
+        let sin2 = n * n * (1.0 - nd * nd);
+        let refract = if sin2 < 1.0 {
+            let cos = (1.0 - sin2).sqrt();
+            Some(ray.direction * n - normal * (n * nd.abs() + cos))
         } else {
             None
         };
