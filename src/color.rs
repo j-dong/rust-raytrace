@@ -71,6 +71,17 @@ fn clamp_color_val(val: f64) -> u8 {
     if x < 0.0 {0} else if x >= 255.0 {255} else {x.trunc() as u8}
 }
 
+fn to_srgb(val: f64) -> u8 {
+    // TODO: faster, using lookup table
+    clamp_color_val(
+        if val <= 0.03928 {
+            val / 12.92
+        } else {
+            ((val + 0.055) / 1.055).powf(2.4)
+        }
+    )
+}
+
 impl Color {
     /// Creates a color from RGB components. The resulting color
     /// has components are that not clamped to [0, 1).
@@ -92,9 +103,9 @@ impl Color {
 
     /// Write this color to the ith position in the row buffer.
     pub fn write_bgr(&self, buf: &mut Vec<u8>, i: usize) {
-        buf[i * 3]     = clamp_color_val(self.b);
-        buf[i * 3 + 1] = clamp_color_val(self.g);
-        buf[i * 3 + 2] = clamp_color_val(self.r);
+        buf[i * 3]     = to_srgb(self.b);
+        buf[i * 3 + 1] = to_srgb(self.g);
+        buf[i * 3 + 2] = to_srgb(self.r);
     }
 
     /// Some indication of significance; if 0, unsignificant; if
