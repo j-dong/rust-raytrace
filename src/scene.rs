@@ -9,6 +9,7 @@ use types::*;
 use shapes::*;
 use color::*;
 use camera::*;
+use texture::*;
 
 use types::na::{Norm, FloatPnt};
 
@@ -139,7 +140,39 @@ impl LightModel for DirectionalLight {
     }
 }
 
-/// A scene with objects, lights, and a camera.
+/// The background of a scene. They are used when a ray does not
+/// intersect any object.
+pub trait Background {
+    /// The color of the background with a specified ray.
+    fn color(&self, ray: &Ray) -> Color;
+}
+
+/// A background where the result is always a solid color.
+pub struct SolidColorBackground {
+    /// The color of the background.
+    pub color: Color,
+}
+
+/// A background where the result is looking up the ray direction
+/// in a skybox. A skybox is an environment mapping technique
+/// that stores the environment in a cube of images. This produces
+/// rich backgrounds with little computation.
+pub struct SkyboxBackground {
+    /// The face in the positive X direction.
+    pub px: Texture,
+    /// The face in the negative X direction.
+    pub nx: Texture,
+    /// The face in the positive Y direction.
+    pub py: Texture,
+    /// The face in the negative Y direction.
+    pub ny: Texture,
+    /// The face in the positive Z direction.
+    pub pz: Texture,
+    /// The face in the negative Z direction.
+    pub nz: Texture,
+}
+
+/// A scene with objects, lights, a camera, and a background.
 pub struct Scene {
     /// The objects in the scene.
     pub objects: Vec<Object>,
@@ -147,6 +180,8 @@ pub struct Scene {
     pub lights: Vec<Light>,
     /// The camera of the scene.
     pub camera: Box<Camera>,
+    /// The background of the scene.
+    pub background: Box<Background>,
 }
 
 /// Intersection result of a scene, containing the object it hit.

@@ -618,9 +618,34 @@ fn_parse_box!(
 );
 
 fn_parse_struct!(
+    parse_solid_color_background(toks) -> SolidColorBackground {
+        color: parse_color(toks),
+    }
+);
+
+fn_parse_struct!(
+    parse_skybox_background(toks) -> SkyboxBackground {
+        px: unimplemented!(),
+        nx: unimplemented!(),
+        py: unimplemented!(),
+        ny: unimplemented!(),
+        pz: unimplemented!(),
+        nz: unimplemented!(),
+    }
+);
+
+fn_parse_box!(
+    parse_box_background(toks) -> Background {
+        SolidColorBackground => parse_solid_color_background(toks),
+        SkyboxBackground => parse_skybox_background(toks),
+    }
+);
+
+fn_parse_struct!(
     parse_scene(toks) -> Scene {
         objects: parse_vec(toks, parse_object),
         lights: parse_vec(toks, parse_light),
         camera: parse_box_camera(toks),
+        background: parse_box_background(toks),
     }
 );

@@ -162,11 +162,33 @@ impl Material for TransparentMaterial {
     }
 }
 
-/// Get the color when a ray does not intersect any geometry.
-/// Later on this function may compute sky color using scattering
-/// or perhaps a skybox.
-pub fn background_color(ray: &Ray) -> Color {
-    color::BLACK
+impl Background for SolidColorBackground {
+    fn color(&self, ray: &Ray) -> Color {
+        self.color
+    }
+}
+
+macro_rules! skybox_axis {
+    ($self_:ident, $rayd:expr, $namep:ident, $namen:ident, $dir:ident, $otherx:ident, $othery:ident) => {
+        if $rayd.$dir.abs() > $rayd.$otherx.abs() && $rayd.$dir.abs() > $rayd.$othery.abs() {
+            let ix = $rayd.$otherx / $rayd.$dir;
+            let iy = $rayd.$othery / $rayd.$dir;
+            if $rayd.$dir > 0.0 {
+                return $self_.$namep.sample(ix, iy);
+            } else {
+                return $self_.$namen.sample(ix, iy);
+            }
+        }
+    };
+}
+
+impl Background for SkyboxBackground {
+    fn color(&self, ray: &Ray) -> Color {
+        skybox_axis!(self, ray.direction, px, nx, x, z, y);
+        skybox_axis!(self, ray.direction, py, ny, y, x, z);
+        skybox_axis!(self, ray.direction, pz, nz, z, x, y);
+        color::BLACK
+    }
 }
 
 /// Trace a ray to an object or nothing and return the result of
@@ -176,7 +198,7 @@ pub fn ray_color(scene: &Scene, ray: &Ray, significance: f64) -> Color {
     // find the object that the ray hits and compute the color
     match scene.intersect(ray) {
         Some(result) => result.object.material.color(scene, &result.result, ray, significance),
-        None => background_color(ray),
+        None => scene.background.color(ray),
     }
 }
 
