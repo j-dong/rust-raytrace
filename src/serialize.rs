@@ -298,7 +298,6 @@ impl<'a, I: Processable<Item = char> + 'a> Iterator for StringParser<'a, I> {
     type Item = char;
 
     fn next(&mut self) -> Option<char> {
-        self.acceptor.take(); // skip the initial "
         if self.acceptor.accept(|&c| {c == '\\'}).is_some() {
             let c = match self.acceptor.take() {
                 Some(c) => c,
@@ -401,7 +400,7 @@ impl<'a> Iterator for Tokenizer<'a> {
                 }
                 self.next()
             },
-            '"' => Some(Token::String(parse_string_tok(&mut self.acceptor).collect())),
+            '"' => {self.acceptor.skip(); Some(Token::String(parse_string_tok(&mut self.acceptor).collect()))},
             'A' ... 'Z' | 'a' ... 'z' | '_' => Some(Token::Identifier(self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' => true, _ => false}}).collect())),
             '0' ... '9' | '.' | '-' | '+' => {
                 let num = self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' | '.' | '-' | '+' => true, _ => false}}).collect::<String>();

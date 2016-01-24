@@ -89,4 +89,7 @@
         // for some reason this is actually double what it
         // should be.
     )
+    background: SkyboxBackground {
+        px: load("posx.jpg")
+    }
 }
