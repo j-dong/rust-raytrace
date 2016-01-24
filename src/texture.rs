@@ -44,13 +44,13 @@ impl Texture {
     /// range [0, 1], and they will be clamped. The result will be
     /// blended.
     pub fn sample(&self, x: f64, y: f64) -> Color {
-        let x = clamp(x) * (self.width as f64);
-        let y = clamp(y) * (self.height as f64);
+        let x = clamp(x) * (self.width - 1) as f64;
+        let y = clamp(y) * (self.height - 1) as f64;
         let x0 = x as u32;
-        let x1 = x0 + 1;
+        let x1 = if x0 >= self.width - 1 { self.width - 1 } else { x0 + 1 };
         let xx = x - (x0 as f64);
         let y0 = y as u32;
-        let y1 = y0 + 1;
+        let y1 = if y0 >= self.height - 1 { self.height - 1 } else { y0 + 1 };
         let yy = y - (y0 as f64);
         let cx0 = self.at(x0, y0) * (1.0 - xx) + self.at(x0, y1) * xx;
         let cx1 = self.at(x1, y0) * (1.0 - xx) + self.at(x1, y1) * xx;

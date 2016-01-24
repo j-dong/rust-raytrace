@@ -90,6 +90,11 @@
         // should be.
     )
     background: SkyboxBackground {
-        px: load("posx.jpg")
+        px: load("posx.png")
+        nx: load("negx.png")
+        py: load("posy.png")
+        ny: load("negy.png")
+        pz: load("posz.png")
+        nz: load("negz.png")
     }
 }
