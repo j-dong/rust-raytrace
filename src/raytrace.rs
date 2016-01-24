@@ -169,14 +169,12 @@ impl Background for SolidColorBackground {
 }
 
 macro_rules! skybox_axis {
-    ($self_:ident, $rayd:expr, $namep:ident, $namen:ident, $dir:ident, $otherx:ident, $othery:ident) => {
+    ($self_:ident, $rayd:expr, $namep:ident, $namen:ident, $dir:ident, $otherx:ident, $othery:ident, $px:expr, $py:expr) => {
         if $rayd.$dir.abs() > $rayd.$otherx.abs() && $rayd.$dir.abs() > $rayd.$othery.abs() {
-            let ix = $rayd.$otherx / $rayd.$dir;
-            let iy = $rayd.$othery / $rayd.$dir;
             if $rayd.$dir > 0.0 {
-                return $self_.$namep.sample(ix, iy);
+                return $self_.$namep.sample($px * 0.5 + 0.5, $py * 0.5 + 0.5);
             } else {
-                return $self_.$namen.sample(ix, iy);
+                return $self_.$namen.sample($px * 0.5 + 0.5, $py * 0.5 + 0.5);
             }
         }
     };
@@ -184,9 +182,10 @@ macro_rules! skybox_axis {
 
 impl Background for SkyboxBackground {
     fn color(&self, ray: &Ray) -> Color {
-        skybox_axis!(self, ray.direction, px, nx, x, z, y);
-        skybox_axis!(self, ray.direction, py, ny, y, x, z);
-        skybox_axis!(self, ray.direction, pz, nz, z, x, y);
+        let d = ray.direction;
+        skybox_axis!(self, d, px, nx, x, z, y, -d.z / d.x, -d.y / d.x.abs());
+        skybox_axis!(self, d, py, ny, y, x, z, d.x / d.y.abs(), d.z / d.y);
+        skybox_axis!(self, d, pz, nz, z, x, y, d.x / d.z, -d.y / d.z.abs());
         color::BLACK
     }
 }

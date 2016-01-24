@@ -39,7 +39,7 @@
         }
         {
             bounds: Sphere {
-                center: (0, -0.205124145, 1.678350269)
+                center: (0, -0.205124145, 0.678350269)
                 radius: 0.5
             }
             material: TransparentMaterial {

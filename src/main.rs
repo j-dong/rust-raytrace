@@ -12,8 +12,8 @@ use libraytrace::serialize;
 
 fn main() {
     // image parameters
-    let width:u32  = 200;
-    let height:u32 = 200;
+    let width:u32  = 800;
+    let height:u32 = 800;
     // read a file
     let scene = {
         let file = match File::open("test_scene.txt") {
