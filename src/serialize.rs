@@ -2,6 +2,7 @@
 //!
 //! Currently only deserializes.
 
+use std;
 use std::str::{Chars, FromStr};
 use std::fmt;
 use std::error::Error;
@@ -195,6 +196,7 @@ impl<I: Processable> Expectable<I::Item> for Acceptor<I> where I::Item: fmt::Deb
 #[derive(Debug)]
 enum Token {
     Identifier(String),
+    String(String),
     Number(f64),
     LBrace,
     RBrace,
@@ -277,6 +279,74 @@ impl Error for SyntaxError {
     }
 }
 
+struct StringParser<'a, I: Processable<Item = char> + 'a> {
+    acceptor: &'a mut Acceptor<I>,
+}
+
+impl<'a, I: Processable<Item = char> + 'a> Iterator for StringParser<'a, I> {
+    type Item = char;
+
+    fn next(&mut self) -> Option<char> {
+        self.acceptor.take(); // skip the initial "
+        if self.acceptor.accept(|&c| {c == '\\'}).is_some() {
+            let c = match self.acceptor.take() {
+                Some(c) => c,
+                None => return None,
+            };
+            match c {
+                'n' => Some('\n'),
+                'r' => Some('\r'),
+                't' => Some('\t'),
+                '\\' => Some('\\'),
+                '0' => Some('\0'),
+                '\'' => Some('\''),
+                '\"' => Some('\"'),
+                'x' => {
+                    let a = match self.acceptor.take().and_then(|c| {c.to_digit(16)}) {
+                        Some(n) => n,
+                        // skip the next character before skipping
+                        None => {self.acceptor.take(); return self.next()},
+                    };
+                    let b = match self.acceptor.take().and_then(|c| {c.to_digit(16)}) {
+                        Some(n) => n,
+                        None => return self.next(),
+                    };
+                    match std::char::from_u32(a * 16 + b) {
+                        Some(c) => Some(c),
+                        None => return self.next(),
+                    }
+                },
+                'u' => {
+                    if self.acceptor.accept(|&c| {c == '{'}).is_none() {
+                        return self.next();
+                    }
+                    let mut acc:u32 = 0;
+                    while self.acceptor.accept(|&c| {c == '}'}).is_none() {
+                        match self.acceptor.take().and_then(|c| {c.to_digit(16)}) {
+                            Some(n) => {acc = acc * 16 + n;}
+                            None => {self.acceptor.skip_while(|&c| {c != '}'}); return self.next();}
+                        }
+                    }
+                    match std::char::from_u32(acc) {
+                        Some(c) => Some(c),
+                        None => return self.next(),
+                    }
+                },
+                '\n' => {self.acceptor.skip_while(|&c| {c.is_whitespace()}); self.next()},
+                _ => self.next(),
+            }
+        } else if self.acceptor.accept(|&c| {c == '"'}).is_some() {
+            None
+        } else {
+            self.acceptor.take()
+        }
+    }
+}
+
+fn parse_string<'a, I: Processable<Item = char>>(a: &'a mut Acceptor<I>) -> StringParser<'a, I> {
+    StringParser { acceptor: a }
+}
+
 struct Tokenizer<'a> {
     acceptor: Acceptor<Chars<'a>>,
     error: Option<SyntaxError>,
@@ -320,6 +390,7 @@ impl<'a> Iterator for Tokenizer<'a> {
                 }
                 self.next()
             },
+            '"' => Some(Token::String(parse_string(&mut self.acceptor).collect())),
             'A' ... 'Z' | 'a' ... 'z' | '_' => Some(Token::Identifier(self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' => true, _ => false}}).collect())),
             '0' ... '9' | '.' | '-' | '+' => {
                 let num = self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' | '.' | '-' | '+' => true, _ => false}}).collect::<String>();
