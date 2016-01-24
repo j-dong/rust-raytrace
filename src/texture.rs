@@ -52,8 +52,8 @@ impl Texture {
         let y0 = y as u32;
         let y1 = if y0 >= self.height - 1 { self.height - 1 } else { y0 + 1 };
         let yy = y - (y0 as f64);
-        let cx0 = self.at(x0, y0) * (1.0 - xx) + self.at(x0, y1) * xx;
-        let cx1 = self.at(x1, y0) * (1.0 - xx) + self.at(x1, y1) * xx;
-        cx0 * (1.0 - yy) + cx1 * yy
+        let cx0 = self.at(x0, y0) * (1.0 - yy) + self.at(x0, y1) * yy;
+        let cx1 = self.at(x1, y0) * (1.0 - yy) + self.at(x1, y1) * yy;
+        cx0 * (1.0 - xx) + cx1 * xx
     }
 }
