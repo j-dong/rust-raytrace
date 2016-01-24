@@ -14,6 +14,8 @@ use ::scene::*;
 use ::types::{Vec3, Pnt3};
 use ::color::*;
 use ::shapes::*;
+use ::texture::Texture;
+use ::texture;
 
 #[derive(Copy, Clone, Debug)]
 struct Location {
@@ -228,6 +230,13 @@ pub enum SyntaxErrorType {
     Missing,
     /// No such class for polymorphic `Box<T>`
     NoClass(String),
+    /// Error loading texture (this isn't really a syntax error, but
+    /// I didn't feel like making some kind of resource loader)
+    TextureLoad {
+        /// The path of the texture
+        path: String,
+        /// The description of the error
+        err: String },
 }
 
 impl fmt::Display for SyntaxErrorType {
@@ -239,6 +248,7 @@ impl fmt::Display for SyntaxErrorType {
             SyntaxErrorType::Undefined(ref s) => write!(fmt, "undefined field: {}", s),
             SyntaxErrorType::Missing => write!(fmt, "missing one or more fields"),
             SyntaxErrorType::NoClass(ref s) => write!(fmt, "no such class: {}", s),
+            SyntaxErrorType::TextureLoad { ref path, ref err } => write!(fmt, "error loading \"{}\": {}", path, err),
         }
     }
 }
@@ -268,6 +278,7 @@ impl Error for SyntaxError {
             SyntaxErrorType::Undefined(_) => "undefined field",
             SyntaxErrorType::Missing => "missing fields",
             SyntaxErrorType::NoClass(_) => "no such class",
+            SyntaxErrorType::TextureLoad { path: _, err: _ } => "error loading texture",
         }
     }
 
@@ -343,7 +354,7 @@ impl<'a, I: Processable<Item = char> + 'a> Iterator for StringParser<'a, I> {
     }
 }
 
-fn parse_string<'a, I: Processable<Item = char>>(a: &'a mut Acceptor<I>) -> StringParser<'a, I> {
+fn parse_string_tok<'a, I: Processable<Item = char>>(a: &'a mut Acceptor<I>) -> StringParser<'a, I> {
     StringParser { acceptor: a }
 }
 
@@ -390,7 +401,7 @@ impl<'a> Iterator for Tokenizer<'a> {
                 }
                 self.next()
             },
-            '"' => Some(Token::String(parse_string(&mut self.acceptor).collect())),
+            '"' => Some(Token::String(parse_string_tok(&mut self.acceptor).collect())),
             'A' ... 'Z' | 'a' ... 'z' | '_' => Some(Token::Identifier(self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' => true, _ => false}}).collect())),
             '0' ... '9' | '.' | '-' | '+' => {
                 let num = self.acceptor.take_while(|c| {match *c {'A' ... 'Z' | 'a' ... 'z' | '0' ... '9' | '_' | '.' | '-' | '+' => true, _ => false}}).collect::<String>();
@@ -443,6 +454,11 @@ fn parse_i32(toks: &mut Acceptor<Tokenizer>) -> Result<i32, SyntaxError> {
         println!("Warning: integer values past ~2^24+1 are not exact");
     }
     Ok(num.round() as i32)
+}
+
+#[inline]
+fn parse_string(toks: &mut Acceptor<Tokenizer>) -> Result<String, SyntaxError> {
+    Ok(match try!(toks.expect(|t| {match *t {Token::String(_) => true, _ => false}}, "String")) { Token::String(x) => x, _ => panic!("at the disco") })
 }
 
 fn parse_ang(toks: &mut Acceptor<Tokenizer>) -> Result<f64, SyntaxError> {
@@ -545,6 +561,9 @@ macro_rules! process_fn_args {
              )*
         );
     };
+    ( $toks:ident, $param:ident : $parser:expr) => {
+        let $param = try!($parser);
+    };
     ( $toks:ident, ) => {}
 }
 
@@ -556,7 +575,7 @@ macro_rules! fn_parse_function {
             // normalize parameter format so easier parsing
             process_fn_args!($toks, $($param : $parser),*);
             try!($toks.expect(|t| {match *t {Token::RParen => true, _ => false}}, "RParen"));
-            Ok($fcall)
+            $fcall
         }
     }
 }
@@ -600,7 +619,7 @@ fn_parse_function!(
         look: parse_vec3(toks),
         up: parse_vec3(toks),
         im_dist: parse_f64(toks),
-    ) => SimplePerspectiveCamera::new(&position, &look, &up, im_dist)
+    ) => Ok(SimplePerspectiveCamera::new(&position, &look, &up, im_dist))
 );
 
 fn_parse_function!(
@@ -611,7 +630,7 @@ fn_parse_function!(
         up: parse_vec3(toks),
         pov: parse_ang(toks),
         h: parse_f64(toks),
-    ) => SimplePerspectiveCamera::look_at(&focus, &look, &up, pov, h)
+    ) => Ok(SimplePerspectiveCamera::look_at(&focus, &look, &up, pov, h))
 );
 
 fn_parse_box!(
@@ -694,14 +713,21 @@ fn_parse_struct!(
     }
 );
 
+fn_parse_function!(
+    parse_load_texture(toks) -> Texture
+    load(
+        path: parse_string(toks),
+    ) => Texture::load(path.clone()).map_err(|err| {SyntaxError { etype: SyntaxErrorType::TextureLoad { path: path, err: texture::error_description(err) }, location: toks.iter.location }})
+);
+
 fn_parse_struct!(
     parse_skybox_background(toks) -> SkyboxBackground {
-        px: unimplemented!(),
-        nx: unimplemented!(),
-        py: unimplemented!(),
-        ny: unimplemented!(),
-        pz: unimplemented!(),
-        nz: unimplemented!(),
+        px: parse_load_texture(toks),
+        nx: parse_load_texture(toks),
+        py: parse_load_texture(toks),
+        ny: parse_load_texture(toks),
+        pz: parse_load_texture(toks),
+        nz: parse_load_texture(toks),
     }
 );
 

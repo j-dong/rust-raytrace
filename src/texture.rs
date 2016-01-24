@@ -7,6 +7,12 @@
 use std::path::Path;
 use color::Color;
 
+pub type LoadError = u8;
+
+pub fn error_description(err: LoadError) -> String {
+    format!("error #{}", err)
+}
+
 /// A texture stored in memory. It can be loaded from a file, and
 /// pixels can be sampled.
 pub struct Texture {
@@ -17,7 +23,7 @@ pub struct Texture {
 
 impl Texture {
     /// Load a texture from a file.
-    pub fn load<P: AsRef<Path>>(path: P) -> Result<Texture, u8> {
+    pub fn load<P: AsRef<Path>>(path: P) -> Result<Texture, LoadError> {
         unimplemented!()
     }
     /// Get the color at a position. The parameters are in pixels.
