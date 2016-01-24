@@ -5,6 +5,7 @@ authors = ["James <dong.james.sept14@gmail.com>"]
 
 [dependencies]
 nalgebra = "^0.4.0"
+image = "^0.6.1"
 
 [features]
 nightly = []

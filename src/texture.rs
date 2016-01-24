@@ -4,10 +4,12 @@
 //! the colors in an object. Right now, it is only being used
 //! for the skybox.
 
+extern crate image;
+
 use std::path::Path;
 use color::Color;
 
-pub type LoadError = u8;
+pub type LoadError = image::ImageError;
 
 pub fn error_description(err: LoadError) -> String {
     format!("error #{}", err)
@@ -17,18 +19,21 @@ pub fn error_description(err: LoadError) -> String {
 /// pixels can be sampled.
 pub struct Texture {
     width: u32,
-    heigh: u32,
+    height: u32,
     data: Box<[u8]>,
 }
 
 impl Texture {
     /// Load a texture from a file.
+    /// Assumes that the texture is in the sRGB colorspace.
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Texture, LoadError> {
-        unimplemented!()
+        let im = try!(image::open(path)).to_rgb();
+        Ok(Texture { width: im.width(), height: im.height(), data: im.into_raw().into_boxed_slice() })
     }
     /// Get the color at a position. The parameters are in pixels.
     pub fn at(&self, x: u32, y: u32) -> Color {
-        unimplemented!()
+        let idx = 3 * (x + y * self.width) as usize;
+        Color::from_srgb(self.data[idx + 0], self.data[idx + 1], self.data[idx + 2])
     }
     /// Sample the color at a position. The parameters are in the
     /// range [0, 1], and they will be clamped. The result will be
