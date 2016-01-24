@@ -10,7 +10,7 @@ use std::fs::File;
 pub fn write_header(f: &mut File, width: u32, height: u32) -> io::Result<u32> {
     let bytewidth = (3 * width + 3) & 0xFFFFFFFC;
     let pasize = bytewidth * height; // size of pixel array
-    let fsize = 14 + 40 + pasize;
+    let fsize = 14 + 108 + pasize;
     try!(f.write(&[
         0x42u8, 0x4Du8, // "BM"
         ((fsize)       & 0xFF) as u8, // file size in little endian
@@ -18,7 +18,7 @@ pub fn write_header(f: &mut File, width: u32, height: u32) -> io::Result<u32> {
         ((fsize >> 16) & 0xFF) as u8,
         ((fsize >> 24) & 0xFF) as u8,
         0x00u8, 0x00u8, 0x00u8, 0x00u8, // implementation defined
-        0x36u8, 0x00u8, 0x00u8, 0x00u8, // offset of pixel array
+        0x7Au8, 0x00u8, 0x00u8, 0x00u8, // offset of pixel array
         0x6Cu8, 0x00u8, 0x00u8, 0x00u8, // size of DIB header
         ((width)        & 0xFF) as u8, // width
         ((width >> 8)   & 0xFF) as u8,
