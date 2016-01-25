@@ -456,6 +456,17 @@ fn parse_i32(toks: &mut Acceptor<Tokenizer>) -> Result<i32, SyntaxError> {
 }
 
 #[inline]
+fn parse_u32(toks: &mut Acceptor<Tokenizer>) -> Result<u32, SyntaxError> {
+    let num = try!(parse_i32(toks));
+    if num < 0 {
+        println!("Warning: unsigned integer {} is negative, using 0", num);
+        Ok(0)
+    } else {
+        Ok(num as u32)
+    }
+}
+
+#[inline]
 fn parse_string(toks: &mut Acceptor<Tokenizer>) -> Result<String, SyntaxError> {
     Ok(match try!(toks.expect(|t| {match *t {Token::String(_) => true, _ => false}}, "String")) { Token::String(x) => x, _ => panic!("at the disco") })
 }
@@ -632,9 +643,20 @@ fn_parse_function!(
     ) => Ok(SimplePerspectiveCamera::look_at(&focus, &look, &up, pov, h))
 );
 
+fn_parse_function!(
+    parse_new_dofc(toks) -> DepthOfFieldCamera
+    new(
+        camera: parse_new_spc(toks).or_else(|_| parse_look_at_spc(toks)),
+        focus: parse_f64(toks),
+        aperture: parse_f64(toks),
+        samples: parse_u32(toks),
+    )
+);
+
 fn_parse_box!(
     parse_box_camera(toks) -> Camera {
         SimplePerspectiveCamera => parse_new_spc(toks).or_else(|_| parse_look_at_spc(toks)),
+        DepthOfFieldCamera => parse_new_dofc(toks),
     }
 );
 
