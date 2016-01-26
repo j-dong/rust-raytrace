@@ -21,7 +21,7 @@ fn clamp_zero(x: f64) -> f64 {
 }
 
 impl Material for PhongMaterial {
-    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, _: &mut R) -> Color {
+    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut R) -> Color {
         let mut res = self.ambient;
         let pt = ray.cast(result.t);
         let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
@@ -30,7 +30,7 @@ impl Material for PhongMaterial {
         let normal = if dot(&result.normal, &ray.direction) > 0.0 { -result.normal } else { result.normal };
         for light in &scene.lights {
             if diffuse || specular {
-                let ldir = light.model.light_dir_for(&pt);
+                let ldir = light.model.light_dir_for(&pt, rng);
                 // check if in shadow
                 if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
                     if match light.model.sq_shadow_range(&pt) {
@@ -52,14 +52,14 @@ impl Material for PhongMaterial {
             let d = ray.direction;
             let rd = d - normal * (2.0 * dot(&d, &normal));
             let reflect = Ray { origin: pt + rd * 0.00001, direction: rd };
-            res = res + self.specular * ray_color(scene, &reflect, significance * self.specular.significance());
+            res = res + self.specular * ray_color(scene, &reflect, significance * self.specular.significance(), rng);
         }
         res
     }
 }
 
 impl Material for FresnelMaterial {
-    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, _: &mut Rng) -> Color {
+    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut R) -> Color {
         let mut res = self.ambient;
         let pt = ray.cast(result.t);
         let nd = dot(&result.normal, &ray.direction);
@@ -75,7 +75,7 @@ impl Material for FresnelMaterial {
         let specular = self.specular.significance() * fresnel * significance > MIN_SIGNIFICANCE;
         for light in &scene.lights {
             if diffuse || specular {
-                let ldir = light.model.light_dir_for(&pt);
+                let ldir = light.model.light_dir_for(&pt, rng);
                 // check if in shadow
                 if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
                     if match light.model.sq_shadow_range(&pt) {
@@ -97,16 +97,14 @@ impl Material for FresnelMaterial {
             let d = ray.direction;
             let rd = d - normal * (2.0 * dot(&d, &normal));
             let reflect = Ray { origin: pt + rd * 0.00001, direction: rd };
-            res = res + self.specular * ray_color(scene, &reflect, fresnel * significance * self.specular.significance()) * fresnel;
+            res = res + self.specular * ray_color(scene, &reflect, fresnel * significance * self.specular.significance(), rng) * fresnel;
         }
-        // TODO: refraction
-        // http://graphics.stanford.edu/courses/cs148-10-summer/docs/2006--degreve--reflection_refraction.pdf
         res
     }
 }
 
 impl Material for TransparentMaterial {
-    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, _: &mut R) -> Color {
+    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut R) -> Color {
         let mut res = color::BLACK;
         let pt = ray.cast(result.t);
         let nd = dot(&result.normal, &ray.direction);
@@ -131,7 +129,7 @@ impl Material for TransparentMaterial {
         let specular = self.specular.significance() * fresnel * significance > MIN_SIGNIFICANCE;
         for light in &scene.lights {
             if specular {
-                let ldir = light.model.light_dir_for(&pt);
+                let ldir = light.model.light_dir_for(&pt, rng);
                 // check if in shadow
                 if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
                     if match light.model.sq_shadow_range(&pt) {
@@ -147,7 +145,7 @@ impl Material for TransparentMaterial {
         if specular {
             let rd = ray.direction - normal * (2.0 * ndv);
             let reflect = Ray { origin: pt + rd * 0.00001, direction: rd };
-            res = res + self.specular * ray_color(scene, &reflect, fresnel * significance * self.specular.significance()) * fresnel;
+            res = res + self.specular * ray_color(scene, &reflect, fresnel * significance * self.specular.significance(), rng) * fresnel;
         }
         if fresnel < 1.0 {
             match refract {
@@ -155,7 +153,7 @@ impl Material for TransparentMaterial {
                 Some(refract) => {
                     let omf = 1.0 - fresnel;
                     let refract = refract.normalize();
-                    res = res + ray_color(scene, &Ray { origin: pt + refract * 0.00001, direction: refract }, omf * significance) * omf;
+                    res = res + ray_color(scene, &Ray { origin: pt + refract * 0.00001, direction: refract }, omf * significance, rng) * omf;
                 }
             }
         }

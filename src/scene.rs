@@ -89,7 +89,7 @@ pub trait LightModel {
     /// Get the light direction for lighting a specific point.
     /// This is the vector from the point to the light, not the
     /// light's direction.
-    fn light_dir_for(&self, pt: &Pnt3) -> Vec3;
+    fn light_dir_for<R: Rng>(&self, pt: &Pnt3, rng: &mut R) -> Vec3;
     /// Range of the shadow ray. For point lights this is important
     /// otherwise geometry past the light can occlude the lighting.
     fn shadow_range(&self, _: &Pnt3) -> Option<f64> { None }
@@ -116,7 +116,7 @@ pub struct PointLight {
 }
 
 impl LightModel for PointLight {
-    fn light_dir_for(&self, pt: &Pnt3) -> Vec3 {
+    fn light_dir_for<R: Rng>(&self, pt: &Pnt3, _: &mut R) -> Vec3 {
         Vec3::new(self.location.x - pt.x, self.location.y - pt.y, self.location.z - pt.z).normalize()
     }
 
@@ -136,7 +136,7 @@ pub struct DirectionalLight {
 }
 
 impl LightModel for DirectionalLight {
-    fn light_dir_for(&self, _: &Pnt3) -> Vec3 {
+    fn light_dir_for<R: Rng>(&self, _: &Pnt3, _: &mut R) -> Vec3 {
         -self.direction
     }
 }
