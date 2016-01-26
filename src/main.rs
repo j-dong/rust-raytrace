@@ -6,6 +6,7 @@ use std::io::prelude::*;
 use std::fs::File;
 
 use libraytrace::types::*;
+use libraytrace::types::rand;
 use libraytrace::raytrace;
 use libraytrace::bmp;
 use libraytrace::serialize;
@@ -41,6 +42,7 @@ fn main() {
     let halfheight = (height as f64) / 2.0;
     let scale = (1.0 / halfwidth).max(1.0 / halfheight);
     let mut row: Vec<u8> = vec![0; bytewidth as usize];
+    let mut rng = rand::weak_rng();
     for y in 0..height {
         for x in 0..width {
             // transform to (-1, 1)
@@ -48,7 +50,7 @@ fn main() {
                 ((x as f64) - halfwidth)  * scale,
                 ((y as f64) - halfheight) * scale,
             );
-            let color = raytrace::raytrace(&scene, &pos, 1.0);
+            let color = raytrace::raytrace(&scene, &pos, 1.0, &mut rng);
             color.write_bgr(&mut row, x as usize);
         }
         file_handle.write_all(&row[..]).ok().expect("error writing row");
