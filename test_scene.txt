@@ -92,9 +92,9 @@
             // for some reason this is actually double what it
             // should be.
         ),
-        20, // focus
-        5, // aperture size
-        15 // samples
+        19.82, // focus
+        0.3, // aperture size
+        100 // samples
     )
     background: SkyboxBackground {
         px: load("posx.png")

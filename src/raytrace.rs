@@ -203,5 +203,9 @@ pub fn ray_color(scene: &Scene, ray: &Ray, significance: f64) -> Color {
 
 /// Project the position onto the scene and trace the ray.
 pub fn raytrace(scene: &Scene, pos: &Pnt2, significance: f64) -> Color {
-    ray_color(scene, &scene.camera.project(pos), significance)
+    let mut res = color::BLACK;
+    for _ in 0..scene.camera.samples() {
+        res = res + ray_color(scene, &scene.camera.project(pos), significance);
+    }
+    res / scene.camera.samples() as f64
 }
