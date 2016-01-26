@@ -4,6 +4,7 @@
 //! objects is simulated using various formulae.
 
 use types::*;
+use types::rand::Rng;
 use shapes::{Shape, Ray, IntersectionResult};
 use camera::Camera;
 use color;
@@ -20,7 +21,7 @@ fn clamp_zero(x: f64) -> f64 {
 }
 
 impl Material for PhongMaterial {
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64) -> Color {
+    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, _: &mut R) -> Color {
         let mut res = self.ambient;
         let pt = ray.cast(result.t);
         let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
@@ -58,7 +59,7 @@ impl Material for PhongMaterial {
 }
 
 impl Material for FresnelMaterial {
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64) -> Color {
+    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, _: &mut Rng) -> Color {
         let mut res = self.ambient;
         let pt = ray.cast(result.t);
         let nd = dot(&result.normal, &ray.direction);
@@ -105,7 +106,7 @@ impl Material for FresnelMaterial {
 }
 
 impl Material for TransparentMaterial {
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64) -> Color {
+    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, _: &mut R) -> Color {
         let mut res = color::BLACK;
         let pt = ray.cast(result.t);
         let nd = dot(&result.normal, &ray.direction);
@@ -163,7 +164,7 @@ impl Material for TransparentMaterial {
 }
 
 impl Background for SolidColorBackground {
-    fn color(&self, ray: &Ray) -> Color {
+    fn color<R: Rng>(&self, _: &Ray, _: &mut R) -> Color {
         self.color
     }
 }
@@ -181,7 +182,7 @@ macro_rules! skybox_axis {
 }
 
 impl Background for SkyboxBackground {
-    fn color(&self, ray: &Ray) -> Color {
+    fn color<R: Rng>(&self, ray: &Ray, _: &mut R) -> Color {
         let d = ray.direction;
         skybox_axis!(self, d, px, nx, x, z, y, -d.z / d.x, -d.y / d.x.abs());
         skybox_axis!(self, d, py, ny, y, x, z, d.x / d.y.abs(), d.z / d.y);
@@ -193,19 +194,19 @@ impl Background for SkyboxBackground {
 /// Trace a ray to an object or nothing and return the result of
 /// color computation. Significance is a float that is decreased
 /// when a ray is generated recursively.
-pub fn ray_color(scene: &Scene, ray: &Ray, significance: f64) -> Color {
+pub fn ray_color<R: Rng>(scene: &Scene, ray: &Ray, significance: f64, rng: &mut R) -> Color {
     // find the object that the ray hits and compute the color
     match scene.intersect(ray) {
-        Some(result) => result.object.material.color(scene, &result.result, ray, significance),
-        None => scene.background.color(ray),
+        Some(result) => result.object.material.color(scene, &result.result, ray, significance, rng),
+        None => scene.background.color(ray, rng),
     }
 }
 
 /// Project the position onto the scene and trace the ray.
-pub fn raytrace(scene: &Scene, pos: &Pnt2, significance: f64) -> Color {
+pub fn raytrace<R: Rng>(scene: &Scene, pos: &Pnt2, significance: f64, rng: &mut R) -> Color {
     let mut res = color::BLACK;
     for _ in 0..scene.camera.samples() {
-        res = res + ray_color(scene, &scene.camera.project(pos), significance);
+        res = res + ray_color(scene, &scene.camera.project(pos, R), significance);
     }
     res / scene.camera.samples() as f64
 }

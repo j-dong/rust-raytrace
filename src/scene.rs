@@ -12,6 +12,7 @@ use camera::*;
 use texture::*;
 
 use types::na::{Norm, FloatPnt};
+use types::rand::Rng;
 
 use std::boxed::Box;
 use std::option::Option;
@@ -27,7 +28,7 @@ pub trait Material {
     /// Get the color from a ray intersection; generally involves
     /// getting the interaction from the object's material. Significance is a float that is decreased
     /// when a ray is generated recursively.
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64) -> Color;
+    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut Rng) -> Color;
 }
 
 /// Material using the Blinn-Phong reflection model.
@@ -144,7 +145,7 @@ impl LightModel for DirectionalLight {
 /// intersect any object.
 pub trait Background {
     /// The color of the background with a specified ray.
-    fn color(&self, ray: &Ray) -> Color;
+    fn color<R: Rng>(&self, ray: &Ray, rng: &mut Rng) -> Color;
 }
 
 /// A background where the result is always a solid color.

@@ -25,7 +25,7 @@ pub trait Camera {
     ///
     /// `position` is normalized image coordinates, where (-1, -1)
     /// to (1, 1) is the largest centered square in the image.
-    fn project(&self, position: &Pnt2) -> Ray;
+    fn project<R: Rng>(&self, position: &Pnt2, rng: &mut R) -> Ray;
     /// Get the number of samples per pixel.
     fn samples(&self) -> u32 {1}
 }
@@ -78,7 +78,7 @@ impl SimplePerspectiveCamera {
 }
 
 impl Camera for SimplePerspectiveCamera {
-    fn project(&self, position: &Pnt2) -> Ray {
+    fn project<R: Rng>(&self, position: &Pnt2, _: &mut R) -> Ray {
         Ray { origin: self.position, direction: (self.matrix * Vec3::new(position.x, position.y, 1.0)).normalize() }
     }
 }
@@ -113,22 +113,15 @@ impl DepthOfFieldCamera {
 }
 
 impl Camera for DepthOfFieldCamera {
-    fn project(&self, position: &Pnt2) -> Ray {
+    fn project<R: Rng>(&self, position: &Pnt2, rng: &mut R) -> Ray {
         let dir = self.camera.matrix * Vec3::new(position.x, position.y, 1.0); // not normalized
         let ip = self.camera.position + dir; // point on image plane
         let fp = self.camera.position + dir * (self.focus / self.im_dist); // focal point
-        thread_local!(static THREAD_WEAK_RNG: RefCell<rand::XorShiftRng> = {
-            RefCell::new(rand::weak_rng())
-        });
-        let (theta, r) = THREAD_WEAK_RNG.with(|rng| {
-            let mut rng = rng.borrow_mut();
-            // generate a random angle
-            let theta = self.ang_range.ind_sample(&mut *rng);
-            // taking the square root of the radius yields a uniform distribution
-            let rand::Closed01(r2) = rng.gen::<rand::Closed01<f64>>();
-            let r = r2.sqrt() * self.aperture;
-            (theta, r)
-        });
+        // generate a random angle
+        let theta = self.ang_range.ind_sample(&mut *rng);
+        // taking the square root of the radius yields a uniform distribution
+        let rand::Closed01(r2) = rng.gen::<rand::Closed01<f64>>();
+        let r = r2.sqrt() * self.aperture;
         let orig = ip + self.camera.matrix * Vec3::new(theta.cos() * r, theta.sin() * r, 0.0);
         Ray { origin: orig, direction: (fp - orig).normalize() }
     }
