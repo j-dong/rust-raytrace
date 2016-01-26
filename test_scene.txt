@@ -94,7 +94,7 @@
         ),
         19.82, // focus
         0.3, // aperture size
-        32 // samples
+        1 // samples
     )
     background: SkyboxBackground {
         px: load("posx.png")
@@ -103,5 +103,10 @@
         ny: load("negy.png")
         pz: load("posz.png")
         nz: load("negz.png")
+    }
+    options: {
+        width: 800
+        height: 800
+        antialias: 32
     }
 }

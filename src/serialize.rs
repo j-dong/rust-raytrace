@@ -760,10 +760,19 @@ fn_parse_box!(
 );
 
 fn_parse_struct!(
+    parse_options(toks) -> Options {
+        width: parse_u32(toks),
+        height: parse_u32(toks),
+        antialias: parse_u32(toks),
+    }
+)
+
+fn_parse_struct!(
     parse_scene(toks) -> Scene {
         objects: parse_vec(toks, parse_object),
         lights: parse_vec(toks, parse_light),
         camera: parse_box_camera(toks),
         background: parse_box_background(toks),
+        options: parse_options(toks),
     }
 );

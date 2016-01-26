@@ -170,6 +170,16 @@ pub struct SkyboxBackground {
     pub nz: Texture,
 }
 
+/// Render options
+pub struct Options {
+    /// width of the rendered image
+    pub width: u32,
+    /// height of the rendered image
+    pub height: u32,
+    /// number of anti-aliasing samples
+    pub antialias: u32,
+}
+
 /// A scene with objects, lights, a camera, and a background.
 pub struct Scene {
     /// The objects in the scene.
@@ -180,6 +190,8 @@ pub struct Scene {
     pub camera: Box<Camera>,
     /// The background of the scene.
     pub background: Box<Background>,
+    /// Rendering options
+    pub options: Options,
 }
 
 /// Intersection result of a scene, containing the object it hit.
