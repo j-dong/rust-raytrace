@@ -650,7 +650,7 @@ fn_parse_function!(
         focus: parse_f64(toks),
         aperture: parse_f64(toks),
         samples: parse_u32(toks),
-    )
+    ) => Ok(DepthOfFieldCamera::new(camera, focus, aperture, samples))
 );
 
 fn_parse_box!(

@@ -1,6 +1,7 @@
 //! Type aliases for convenience.
 
 extern crate nalgebra as na;
+extern crate rand as rand;
 
 /// 2D point
 pub type Pnt2 = self::na::Pnt2<f64>;

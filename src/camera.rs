@@ -3,8 +3,9 @@
 //! Cameras represent ways to project a point on the image into the
 //! scene as a ray.
 
-extern crate rand;
-use rand::distributions::IndependentSample;
+use types::rand::distributions::IndependentSample;
+use types::rand::{thread_rng, random};
+use types::rand;
 use std::f64;
 
 use types::*;
@@ -25,7 +26,7 @@ pub trait Camera {
     /// to (1, 1) is the largest centered square in the image.
     fn project(&self, position: &Pnt2) -> Ray;
     /// Get the number of samples per pixel.
-    fn samples() -> u32 {1}
+    fn samples(&self) -> u32 {1}
 }
 
 /// A very simple perspective camera that projects the given position
@@ -91,17 +92,20 @@ pub struct DepthOfFieldCamera {
     pub aperture: f64,
     /// The number of samples.
     pub samples: u32,
-    ang_range: rand::distributions::Range;
+    im_dist: f64,
+    ang_range: rand::distributions::Range<f64>,
 }
 
 impl DepthOfFieldCamera {
     /// Create a new `DepthOfFieldCamera`.
     pub fn new(camera: SimplePerspectiveCamera, focus: f64, aperture: f64, samples: u32) -> DepthOfFieldCamera {
+        let im_dist = (camera.matrix * Vec3::new(0.0, 0.0, 1.0)).norm();
         DepthOfFieldCamera {
             camera: camera,
             focus: focus,
             aperture: aperture,
             samples: samples,
+            im_dist: im_dist,
             ang_range: rand::distributions::Range::new(0.0, 2.0 * f64::consts::PI),
         }
     }
@@ -111,14 +115,14 @@ impl Camera for DepthOfFieldCamera {
     fn project(&self, position: &Pnt2) -> Ray {
         let dir = self.camera.matrix * Vec3::new(position.x, position.y, 1.0); // not normalized
         let ip = self.camera.position + dir; // point on image plane
-        let fp = self.camera.position + dir * (self.focus / self.camera.im_dist); // focal point
+        let fp = self.camera.position + dir * (self.focus / self.im_dist); // focal point
         // generate a random angle
-        let theta = self.ang_range.ind_sample(&mut rand::thread_rng());
+        let theta = self.ang_range.ind_sample(&mut thread_rng());
         // taking the square root of the radius yields a uniform distribution
-        let rand::Closed01(r2) = rand::random::<rand::Closed01<f64>>();
+        let rand::Closed01(r2) = random::<rand::Closed01<f64>>();
         let r = r2.sqrt() * self.aperture;
-        let orig = self.ip + self.matrix * Vec3::new(theta.cos(), theta.sin(), 0.0);
+        let orig = ip + self.camera.matrix * Vec3::new(theta.cos() * r, theta.sin() * r, 0.0);
         Ray { origin: orig, direction: (fp - orig).normalize() }
     }
-    fn samples(&self) -> {self.samples}
+    fn samples(&self) -> u32 {self.samples}
 }
