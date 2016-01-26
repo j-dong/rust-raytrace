@@ -94,7 +94,7 @@
         ),
         19.82, // focus
         0.3, // aperture size
-        100 // samples
+        32 // samples
     )
     background: SkyboxBackground {
         px: load("posx.png")

@@ -4,8 +4,9 @@
 //! scene as a ray.
 
 use types::rand::distributions::IndependentSample;
-use types::rand::{thread_rng, random};
+use types::rand::Rng;
 use types::rand;
+use std::cell::RefCell;
 use std::f64;
 
 use types::*;
@@ -116,11 +117,18 @@ impl Camera for DepthOfFieldCamera {
         let dir = self.camera.matrix * Vec3::new(position.x, position.y, 1.0); // not normalized
         let ip = self.camera.position + dir; // point on image plane
         let fp = self.camera.position + dir * (self.focus / self.im_dist); // focal point
-        // generate a random angle
-        let theta = self.ang_range.ind_sample(&mut thread_rng());
-        // taking the square root of the radius yields a uniform distribution
-        let rand::Closed01(r2) = random::<rand::Closed01<f64>>();
-        let r = r2.sqrt() * self.aperture;
+        thread_local!(static THREAD_WEAK_RNG: RefCell<rand::XorShiftRng> = {
+            RefCell::new(rand::weak_rng())
+        });
+        let (theta, r) = THREAD_WEAK_RNG.with(|rng| {
+            let mut rng = rng.borrow_mut();
+            // generate a random angle
+            let theta = self.ang_range.ind_sample(&mut *rng);
+            // taking the square root of the radius yields a uniform distribution
+            let rand::Closed01(r2) = rng.gen::<rand::Closed01<f64>>();
+            let r = r2.sqrt() * self.aperture;
+            (theta, r)
+        });
         let orig = ip + self.camera.matrix * Vec3::new(theta.cos() * r, theta.sin() * r, 0.0);
         Ray { origin: orig, direction: (fp - orig).normalize() }
     }
