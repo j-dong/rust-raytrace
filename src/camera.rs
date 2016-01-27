@@ -4,9 +4,6 @@
 //! scene as a ray.
 
 use types::rand::distributions::IndependentSample;
-use types::rand::Rng;
-use types::rand;
-use std::cell::RefCell;
 use std::f64;
 
 use types::*;
@@ -25,7 +22,7 @@ pub trait Camera {
     ///
     /// `position` is normalized image coordinates, where (-1, -1)
     /// to (1, 1) is the largest centered square in the image.
-    fn project<R: Rng>(&self, position: &Pnt2, rng: &mut R) -> Ray;
+    fn project(&self, position: &Pnt2, rng: &mut RngT) -> Ray;
     /// Get the number of samples per pixel.
     fn samples(&self) -> u32 {1}
 }
@@ -78,7 +75,7 @@ impl SimplePerspectiveCamera {
 }
 
 impl Camera for SimplePerspectiveCamera {
-    fn project<R: Rng>(&self, position: &Pnt2, _: &mut R) -> Ray {
+    fn project(&self, position: &Pnt2, _: &mut RngT) -> Ray {
         Ray { origin: self.position, direction: (self.matrix * Vec3::new(position.x, position.y, 1.0)).normalize() }
     }
 }
@@ -113,7 +110,7 @@ impl DepthOfFieldCamera {
 }
 
 impl Camera for DepthOfFieldCamera {
-    fn project<R: Rng>(&self, position: &Pnt2, rng: &mut R) -> Ray {
+    fn project(&self, position: &Pnt2, rng: &mut RngT) -> Ray {
         let dir = self.camera.matrix * Vec3::new(position.x, position.y, 1.0); // not normalized
         let ip = self.camera.position + dir; // point on image plane
         let fp = self.camera.position + dir * (self.focus / self.im_dist); // focal point

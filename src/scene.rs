@@ -12,7 +12,6 @@ use camera::*;
 use texture::*;
 
 use types::na::{Norm, FloatPnt};
-use types::rand::Rng;
 
 use std::boxed::Box;
 use std::option::Option;
@@ -25,7 +24,7 @@ pub trait Material {
     /// Get the color from a ray intersection; generally involves
     /// getting the interaction from the object's material. Significance is a float that is decreased
     /// when a ray is generated recursively.
-    fn color<R: Rng>(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut Rng) -> Color;
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut RngT) -> Color;
 }
 
 /// Material using the Blinn-Phong reflection model.
@@ -86,7 +85,7 @@ pub trait LightModel {
     /// Get the light direction for lighting a specific point.
     /// This is the vector from the point to the light, not the
     /// light's direction.
-    fn light_dir_for<R: Rng>(&self, pt: &Pnt3, rng: &mut R) -> Vec3;
+    fn light_dir_for(&self, pt: &Pnt3, rng: &mut RngT) -> Vec3;
     /// Range of the shadow ray. For point lights this is important
     /// otherwise geometry past the light can occlude the lighting.
     fn shadow_range(&self, _: &Pnt3) -> Option<f64> { None }
@@ -113,7 +112,7 @@ pub struct PointLight {
 }
 
 impl LightModel for PointLight {
-    fn light_dir_for<R: Rng>(&self, pt: &Pnt3, _: &mut R) -> Vec3 {
+    fn light_dir_for(&self, pt: &Pnt3, _: &mut RngT) -> Vec3 {
         Vec3::new(self.location.x - pt.x, self.location.y - pt.y, self.location.z - pt.z).normalize()
     }
 
@@ -133,7 +132,7 @@ pub struct DirectionalLight {
 }
 
 impl LightModel for DirectionalLight {
-    fn light_dir_for<R: Rng>(&self, _: &Pnt3, _: &mut R) -> Vec3 {
+    fn light_dir_for(&self, _: &Pnt3, _: &mut RngT) -> Vec3 {
         -self.direction
     }
 }
@@ -142,7 +141,7 @@ impl LightModel for DirectionalLight {
 /// intersect any object.
 pub trait Background {
     /// The color of the background with a specified ray.
-    fn color<R: Rng>(&self, ray: &Ray, rng: &mut Rng) -> Color;
+    fn color(&self, ray: &Ray, rng: &mut RngT) -> Color;
 }
 
 /// A background where the result is always a solid color.

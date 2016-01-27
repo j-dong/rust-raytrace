@@ -765,7 +765,7 @@ fn_parse_struct!(
         height: parse_u32(toks),
         antialias: parse_u32(toks),
     }
-)
+);
 
 fn_parse_struct!(
     parse_scene(toks) -> Scene {

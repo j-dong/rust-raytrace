@@ -1,4 +1,3 @@
-extern crate nalgebra as na;
 extern crate libraytrace;
 
 use std::io::BufReader;
@@ -6,7 +5,6 @@ use std::io::prelude::*;
 use std::fs::File;
 
 use libraytrace::types::*;
-use libraytrace::types::rand;
 use libraytrace::color;
 use libraytrace::raytrace;
 use libraytrace::bmp;
@@ -47,7 +45,7 @@ fn main() {
     for y in 0..height {
         for x in 0..width {
             let mut res = color::BLACK;
-            for aa in 0..aasamples {
+            for _ in 0..aasamples {
                 // transform to (-1, 1)
                 let pos = Pnt2::new(
                     ((x as f64 + rng.gen::<f64>()) - halfwidth)  * scale,
@@ -55,7 +53,7 @@ fn main() {
                 );
                 res = res + raytrace::raytrace(&scene, &pos, 1.0, &mut rng);
             }
-            (res / aasamples).write_bgr(&mut row, x as usize);
+            (res / aasamples as f64).write_bgr(&mut row, x as usize);
         }
         file_handle.write_all(&row[..]).ok().expect("error writing row");
     }
