@@ -19,6 +19,11 @@ fn clamp_zero(x: f64) -> f64 {
     if x < 0.0 { 0.0 } else { x }
 }
 
+#[inline]
+fn clamp_one(x: f64) -> f64 {
+    if x > 1.0 { 1.0 } else { x }
+}
+
 impl Material for PhongMaterial {
     fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut RngT) -> Color {
         let mut res = self.ambient;
@@ -69,7 +74,7 @@ impl Material for FresnelMaterial {
         let r0 = r0 * r0;
         let omcos = 1.0 - nd.abs();
         let omcos2 = omcos * omcos;
-        let fresnel = r0 + (1.0 - r0) * omcos2 * omcos2 * omcos;
+        let fresnel = clamp_one(r0 + (1.0 - r0) * omcos2 * omcos2 * omcos);
         let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
         let specular = self.specular.significance() * fresnel * significance > MIN_SIGNIFICANCE;
         for light in &scene.lights {
@@ -124,7 +129,7 @@ impl Material for TransparentMaterial {
         let r0 = r0 * r0;
         let omcos = 1.0 - nd.abs();
         let omcos2 = omcos * omcos;
-        let fresnel = if refract.is_some() { r0 + (1.0 - r0) * omcos2 * omcos2 * omcos } else { 1.0 };
+        let fresnel = if refract.is_some() { clamp_one(r0 + (1.0 - r0) * omcos2 * omcos2 * omcos) } else { 1.0 };
         let specular = self.specular.significance() * fresnel * significance > MIN_SIGNIFICANCE;
         for light in &scene.lights {
             if specular {
@@ -150,7 +155,7 @@ impl Material for TransparentMaterial {
             match refract {
                 None => (),
                 Some(refract) => {
-                    let omf = 1.0 - fresnel;
+                    let omf = clamp_one(1.0 - fresnel);
                     let refract = refract.normalize();
                     res = res + ray_color(scene, &Ray { origin: pt + refract * 0.00001, direction: refract }, omf * significance, rng) * omf;
                 }
