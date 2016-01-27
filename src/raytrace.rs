@@ -116,7 +116,7 @@ impl Material for TransparentMaterial {
         let normal = if nd > 0.0 { -result.normal } else { result.normal };
         // calculate refraction vector
         let ndv = dot(&normal, &ray.direction);
-        let n = 1.0 / self.ior;
+        let n = if nd > 0.0 { self.ior } else { 1.0 / self.ior };
         let sin2 = n * n * (1.0 - nd * nd);
         let refract = if sin2 < 1.0 {
             let cos = (1.0 - sin2).sqrt();
@@ -127,7 +127,7 @@ impl Material for TransparentMaterial {
         // I think the Schlick approximation should work well
         let r0 = (self.ior - 1.0) / (self.ior + 1.0);
         let r0 = r0 * r0;
-        let omcos = 1.0 - nd.abs();
+        let omcos = if nd > 0.0 { if let Some(r) = refract { 1.0 - dot(&normal, &r) } else { 0.0 } } else { 1.0 - nd.abs() };
         let omcos2 = omcos * omcos;
         let fresnel = if refract.is_some() { clamp_one(r0 + (1.0 - r0) * omcos2 * omcos2 * omcos) } else { 1.0 };
         let specular = self.specular.significance() * fresnel * significance > MIN_SIGNIFICANCE;
