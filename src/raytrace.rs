@@ -62,6 +62,60 @@ impl Material for PhongMaterial {
     }
 }
 
+impl Material for IndirectPhongMaterial {
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut RngT) -> Color {
+        let mut res = self.ambient;
+        let pt = ray.cast(result.t);
+        let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
+        let specular = self.specular.significance() * significance > MIN_SIGNIFICANCE;
+        // normal should face the viewer; if not, flip it
+        let normal = if dot(&result.normal, &ray.direction) > 0.0 { -result.normal } else { result.normal };
+        if diffuse || specular {
+            // direct lighting
+            for light in &scene.lights {
+                let ldir = light.model.light_dir_for(&pt, rng);
+                // check if in shadow
+                if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
+                    if match light.model.sq_shadow_range(&pt) {
+                        Some(r2) => intersection.result.t * intersection.result.t < r2,
+                        None => true,
+                    } {
+                        continue;
+                    }
+                }
+                if diffuse {
+                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
+                }
+                if specular {
+                    res = res + self.specular * light.color * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
+                }
+            }
+            // indirect lighting
+            for _ in 0..self.samples {
+                // generate a random ray
+                let r1: f64 = rng.gen();
+                let r2: f64 = ang_range.ind_sample(rng);
+                let sin_theta = (1.0 - r1 * r1);
+                let phi = r2;
+                let x = sin_theta * phi.cos();
+                let z = sin_theta * phi.sin();
+                // TODO: get the tangent and bitangent
+                let dir = tangent_mat * Vec3::new(x, r1, z);
+                let ray = Ray { origin: pt + dir * 0.00001, direction: dir }
+                // TODO: warning: add recursion limit
+                let color = ray_color(scene, &ray, significance, rng);
+                if diffuse {
+                    res = res + self.diffuse * color * clamp_zero(dot(&dir, &normal));
+                }
+                if specular {
+                    res = res + self.specular * color * clamp_zero(dot(&normal, &((dir - ray.direction).normalize()))).powf(self.exponent);
+                }
+            }
+        }
+        res
+    }
+}
+
 impl Material for FresnelMaterial {
     fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut RngT) -> Color {
         let mut res = self.ambient;

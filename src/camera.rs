@@ -115,7 +115,7 @@ impl Camera for DepthOfFieldCamera {
         let ip = self.camera.position + dir; // point on image plane
         let fp = self.camera.position + dir * (self.focus / self.im_dist); // focal point
         // generate a random angle
-        let theta = self.ang_range.ind_sample(&mut *rng);
+        let theta = self.ang_range.ind_sample(rng);
         // taking the square root of the radius yields a uniform distribution
         let rand::Closed01(r2) = rng.gen::<rand::Closed01<f64>>();
         let r = r2.sqrt() * self.aperture;

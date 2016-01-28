@@ -71,6 +71,22 @@ pub struct TransparentMaterial {
     pub ior: f64,
 }
 
+/// Material using the Blinn-Phong reflection model with indirect lighting.
+pub struct IndirectPhongMaterial {
+    /// Diffuse color of Lambertian reflectance.
+    pub diffuse: Color,
+    /// Color of specular reflectance. Currently glossy reflection is not implemented, and thus
+    /// only highlights will be glossy.
+    pub specular: Color,
+    /// Shininess (specular exponent) in the Phong reflection model.
+    pub exponent: f64,
+    /// Ambient light (light from scattered light in the environment). Currently ambient
+    /// occlusion is not implemented.
+    pub ambient: Color,
+    /// Number of samples to use
+    pub samples: u32,
+}
+
 /// An object in a scene. The `Object` struct contains everything
 /// necessary to render the object.
 pub struct Object {
