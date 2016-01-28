@@ -104,11 +104,12 @@ impl Material for IndirectPhongMaterial {
                 let ray = Ray { origin: pt + dir * 0.00001, direction: dir }
                 // TODO: warning: add recursion limit
                 let color = ray_color(scene, &ray, significance, rng);
+                let fac = self.samples * 0.5 * f64::consts::FRAC_1_PI;
                 if diffuse {
-                    res = res + self.diffuse * color * clamp_zero(dot(&dir, &normal));
+                    res = res + self.diffuse * color * r1 / fac;
                 }
                 if specular {
-                    res = res + self.specular * color * clamp_zero(dot(&normal, &((dir - ray.direction).normalize()))).powf(self.exponent);
+                    res = res + self.specular * color * clamp_zero(dot(&normal, &((dir - ray.direction).normalize()))).powf(self.exponent) / fac;
                 }
             }
         }
