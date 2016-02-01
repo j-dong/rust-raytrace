@@ -24,7 +24,7 @@ pub trait Material {
     /// Get the color from a ray intersection; generally involves
     /// getting the interaction from the object's material. Significance is a float that is decreased
     /// when a ray is generated recursively.
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut RngT) -> Color;
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, depth: u32, rng: &mut RngT) -> Color;
 }
 
 /// Material using the Blinn-Phong reflection model.

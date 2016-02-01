@@ -13,6 +13,7 @@ use scene::*;
 use types::na::{dot, Norm};
 
 const MIN_SIGNIFICANCE: f64 = 1.0f64 / 256.0 / 2.0;
+const MAX_DEPTH = 1000;
 
 #[inline]
 fn clamp_zero(x: f64) -> f64 {
@@ -25,8 +26,9 @@ fn clamp_one(x: f64) -> f64 {
 }
 
 impl Material for PhongMaterial {
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut RngT) -> Color {
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, depth: u32, rng: &mut RngT) -> Color {
         let mut res = self.ambient;
+        if depth > MAX_DEPTH {return res}
         let pt = ray.cast(result.t);
         let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
         let specular = self.specular.significance() * significance > MIN_SIGNIFICANCE;
@@ -56,15 +58,16 @@ impl Material for PhongMaterial {
             let d = ray.direction;
             let rd = d - normal * (2.0 * dot(&d, &normal));
             let reflect = Ray { origin: pt + rd * 0.00001, direction: rd };
-            res = res + self.specular * ray_color(scene, &reflect, significance * self.specular.significance(), rng);
+            res = res + self.specular * ray_color(scene, &reflect, significance * self.specular.significance(), depth + 1, rng);
         }
         res
     }
 }
 
 impl Material for IndirectPhongMaterial {
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut RngT) -> Color {
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, depth: u32, rng: &mut RngT) -> Color {
         let mut res = self.ambient;
+        if depth > MAX_DEPTH {return res}
         let pt = ray.cast(result.t);
         let diffuse = self.diffuse.significance() * significance > MIN_SIGNIFICANCE;
         let specular = self.specular.significance() * significance > MIN_SIGNIFICANCE;
@@ -103,7 +106,7 @@ impl Material for IndirectPhongMaterial {
                 let dir = tangent_mat * Vec3::new(x, r1, z);
                 let ray = Ray { origin: pt + dir * 0.00001, direction: dir }
                 // TODO: warning: add recursion limit
-                let color = ray_color(scene, &ray, significance, rng);
+                let color = ray_color(scene, &ray, significance, depth + 1, rng);
                 let fac = self.samples * 0.5 * f64::consts::FRAC_1_PI;
                 if diffuse {
                     res = res + self.diffuse * color * r1 / fac;
@@ -118,8 +121,9 @@ impl Material for IndirectPhongMaterial {
 }
 
 impl Material for FresnelMaterial {
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut RngT) -> Color {
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, depth: u32, rng: &mut RngT) -> Color {
         let mut res = self.ambient;
+        if depth > MAX_DEPTH {return res}
         let pt = ray.cast(result.t);
         let nd = dot(&result.normal, &ray.direction);
         // normal should face the viewer; if not, flip it
@@ -156,15 +160,16 @@ impl Material for FresnelMaterial {
             let d = ray.direction;
             let rd = d - normal * (2.0 * dot(&d, &normal));
             let reflect = Ray { origin: pt + rd * 0.00001, direction: rd };
-            res = res + self.specular * ray_color(scene, &reflect, fresnel * significance * self.specular.significance(), rng) * fresnel;
+            res = res + self.specular * ray_color(scene, &reflect, fresnel * significance * self.specular.significance(), depth + 1, rng) * fresnel;
         }
         res
     }
 }
 
 impl Material for TransparentMaterial {
-    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, rng: &mut RngT) -> Color {
+    fn color(&self, scene: &Scene, result: &IntersectionResult, ray: &Ray, significance: f64, depth: u32, rng: &mut RngT) -> Color {
         let mut res = color::BLACK;
+        if depth > MAX_DEPTH {return res}
         let pt = ray.cast(result.t);
         let nd = dot(&result.normal, &ray.direction);
         // normal should face the viewer; if not, flip it
@@ -212,7 +217,7 @@ impl Material for TransparentMaterial {
                 Some(refract) => {
                     let omf = clamp_one(1.0 - fresnel);
                     let refract = refract.normalize();
-                    res = res + ray_color(scene, &Ray { origin: pt + refract * 0.00001, direction: refract }, omf * significance, rng) * omf;
+                    res = res + ray_color(scene, &Ray { origin: pt + refract * 0.00001, direction: refract }, omf * significance, depth + 1, rng) * omf;
                 }
             }
         }
@@ -251,10 +256,10 @@ impl Background for SkyboxBackground {
 /// Trace a ray to an object or nothing and return the result of
 /// color computation. Significance is a float that is decreased
 /// when a ray is generated recursively.
-pub fn ray_color(scene: &Scene, ray: &Ray, significance: f64, rng: &mut RngT) -> Color {
+pub fn ray_color(scene: &Scene, ray: &Ray, significance: f64, depth: u32, rng: &mut RngT) -> Color {
     // find the object that the ray hits and compute the color
     match scene.intersect(ray) {
-        Some(result) => result.object.material.color(scene, &result.result, ray, significance, rng),
+        Some(result) => result.object.material.color(scene, &result.result, ray, significance, depth, rng),
         None => scene.background.color(ray, rng),
     }
 }
@@ -263,7 +268,7 @@ pub fn ray_color(scene: &Scene, ray: &Ray, significance: f64, rng: &mut RngT) ->
 pub fn raytrace(scene: &Scene, pos: &Pnt2, significance: f64, rng: &mut RngT) -> Color {
     let mut res = color::BLACK;
     for _ in 0..scene.camera.samples() {
-        res = res + ray_color(scene, &scene.camera.project(pos, rng), significance, rng);
+        res = res + ray_color(scene, &scene.camera.project(pos, rng), significance, 0, rng);
     }
     res / scene.camera.samples() as f64
 }
