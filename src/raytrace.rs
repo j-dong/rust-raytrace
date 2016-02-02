@@ -36,10 +36,10 @@ impl Material for PhongMaterial {
         let normal = if dot(&result.normal, &ray.direction) > 0.0 { -result.normal } else { result.normal };
         for light in &scene.lights {
             if diffuse || specular {
-                let ldir = light.model.light_dir_for(&pt, rng);
+                let (ldir, sqrange) = light.model.light_dir_and_sq_range_for(&pt, rng);
                 // check if in shadow
                 if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
-                    if match light.model.sq_shadow_range(&pt) {
+                    if match sqrange {
                         Some(r2) => intersection.result.t * intersection.result.t < r2,
                         None => true,
                     } {
@@ -76,10 +76,10 @@ impl Material for IndirectPhongMaterial {
         if diffuse || specular {
             // direct lighting
             for light in &scene.lights {
-                let ldir = light.model.light_dir_for(&pt, rng);
+                let (ldir, sqrange) = light.model.light_dir_and_sq_range_for(&pt, rng);
                 // check if in shadow
                 if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
-                    if match light.model.sq_shadow_range(&pt) {
+                    if match sqrange {
                         Some(r2) => intersection.result.t * intersection.result.t < r2,
                         None => true,
                     } {
@@ -137,10 +137,10 @@ impl Material for FresnelMaterial {
         let specular = self.specular.significance() * fresnel * significance > MIN_SIGNIFICANCE;
         for light in &scene.lights {
             if diffuse || specular {
-                let ldir = light.model.light_dir_for(&pt, rng);
+                let (ldir, sqrange) = light.model.light_dir_and_sq_range_for(&pt, rng);
                 // check if in shadow
                 if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
-                    if match light.model.sq_shadow_range(&pt) {
+                    if match sqrange {
                         Some(r2) => intersection.result.t * intersection.result.t < r2,
                         None => true,
                     } {
@@ -192,10 +192,10 @@ impl Material for TransparentMaterial {
         let specular = self.specular.significance() * fresnel * significance > MIN_SIGNIFICANCE;
         for light in &scene.lights {
             if specular {
-                let ldir = light.model.light_dir_for(&pt, rng);
+                let (ldir, sqrange) = light.model.light_dir_and_sq_range_for(&pt, rng);
                 // check if in shadow
                 if let Some(intersection) = scene.intersect(&Ray { origin: pt + ldir * 0.00001, direction: ldir }) {
-                    if match light.model.sq_shadow_range(&pt) {
+                    if match sqrange {
                         Some(r2) => intersection.result.t * intersection.result.t < r2,
                         None => true,
                     } {

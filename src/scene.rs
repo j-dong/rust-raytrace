@@ -100,17 +100,8 @@ pub struct Object {
 pub trait LightModel {
     /// Get the light direction for lighting a specific point.
     /// This is the vector from the point to the light, not the
-    /// light's direction.
-    fn light_dir_for(&self, pt: &Pnt3, rng: &mut RngT) -> Vec3;
-    /// Range of the shadow ray. For point lights this is important
-    /// otherwise geometry past the light can occlude the lighting.
-    fn shadow_range(&self, _: &Pnt3) -> Option<f64> { None }
-    /// Square of the range of the shadow ray, used to avoid the
-    /// `sqrt()` operation.
-    #[inline]
-    fn sq_shadow_range(&self, pt: &Pnt3) -> Option<f64> {
-        self.shadow_range(pt).map(|x| x * x)
-    }
+    /// light's direction. Also gets the square of the range.
+    fn light_dir_and_sq_range_for(&self, pt: &Pnt3, rng: &mut RngT) -> (Vec3, Option<f64>);
 }
 
 /// A light that can project rays of a color onto an object.
@@ -128,16 +119,8 @@ pub struct PointLight {
 }
 
 impl LightModel for PointLight {
-    fn light_dir_for(&self, pt: &Pnt3, _: &mut RngT) -> Vec3 {
-        Vec3::new(self.location.x - pt.x, self.location.y - pt.y, self.location.z - pt.z).normalize()
-    }
-
-    fn sq_shadow_range(&self, pt: &Pnt3) -> Option<f64> {
-        Some(self.location.dist(pt))
-    }
-
-    fn shadow_range(&self, pt: &Pnt3) -> Option<f64> {
-        Some(self.location.sqdist(pt))
+    fn light_dir_and_sq_range_for(&self, pt: &Pnt3, _: &mut RngT) -> (Vec3, Option<f64>) {
+        (Vec3::new(self.location.x - pt.x, self.location.y - pt.y, self.location.z - pt.z).normalize(), Some(self.location.sqdist(pt)))
     }
 }
 
@@ -148,8 +131,8 @@ pub struct DirectionalLight {
 }
 
 impl LightModel for DirectionalLight {
-    fn light_dir_for(&self, _: &Pnt3, _: &mut RngT) -> Vec3 {
-        -self.direction
+    fn light_dir_and_sq_range_for(&self, _: &Pnt3, _: &mut RngT) -> (Vec3, Option<f64>) {
+        (-self.direction, None)
     }
 }
 
