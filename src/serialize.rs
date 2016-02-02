@@ -14,7 +14,9 @@ use ::scene::*;
 use ::types::{Vec3, Pnt3};
 use ::color::*;
 use ::shapes::*;
+#[cfg(feature = "skybox")]
 use ::texture::Texture;
+#[cfg(feature = "skybox")]
 use ::texture;
 
 #[derive(Copy, Clone, Debug)]
@@ -734,6 +736,7 @@ fn_parse_struct!(
     }
 );
 
+#[cfg(feature = "skybox")]
 fn_parse_function!(
     parse_load_texture(toks) -> Texture
     load(
@@ -753,10 +756,13 @@ fn_parse_struct!(
     }
 );
 
+#[cfg(not(feature = "skybox"))]
+fn parse_skybox_background(toks: Tokenizer<Acceptor>) -> ! { panic!("skybox not implemented") }
+
 fn_parse_box!(
     parse_box_background(toks) -> Background {
         SolidColorBackground => parse_solid_color_background(toks),
-        SkyboxBackground => if cfg!(feature = "skybox") { parse_skybox_background(toks) } else { panic!("skybox support not enabled") },
+        SkyboxBackground => parse_skybox_background(toks),
     }
 );
 

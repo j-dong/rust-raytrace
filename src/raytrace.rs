@@ -13,7 +13,7 @@ use scene::*;
 use types::na::{dot, Norm};
 
 const MIN_SIGNIFICANCE: f64 = 1.0f64 / 256.0 / 2.0;
-const MAX_DEPTH = 1000;
+const MAX_DEPTH: u32 = 1000;
 
 #[inline]
 fn clamp_zero(x: f64) -> f64 {
@@ -100,12 +100,12 @@ impl Material for IndirectPhongMaterial {
                 // ang_range is from (0, 2pi)
                 let r1: f64 = y_range.ind_sample(rng);
                 let r2: f64 = ang_range.ind_sample(rng);
-                let sin_theta = (1.0 - r1 * r1);
+                let sin_theta = 1.0 - r1 * r1;
                 let phi = r2;
                 let x = sin_theta * phi.cos();
                 let z = sin_theta * phi.sin();
                 let dir = { let d = Vec3::new(x, r1, z); if dot(&d, &normal) >= 0.0 {d} else {-d} };
-                let ray = Ray { origin: pt + dir * 0.00001, direction: dir }
+                let ray = Ray { origin: pt + dir * 0.00001, direction: dir };
                 let color = ray_color(scene, &ray, significance, depth + 1, rng);
                 let fac = self.samples * 0.5 * f64::consts::FRAC_1_PI;
                 if diffuse {

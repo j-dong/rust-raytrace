@@ -9,4 +9,5 @@ pub mod camera;
 pub mod raytrace;
 pub mod bmp;
 pub mod serialize;
+#[cfg(feature = "skybox")]
 pub mod texture;

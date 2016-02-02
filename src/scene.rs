@@ -9,6 +9,7 @@ use types::*;
 use shapes::*;
 use color::*;
 use camera::*;
+#[cfg(feature = "skybox")]
 use texture::*;
 
 use types::na::{Norm, FloatPnt};
