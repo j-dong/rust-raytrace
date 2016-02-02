@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["James <dong.james.sept14@gmail.com>"]
 
 [features]
-default = "skybox"
+default = ["skybox"]
 skybox = ["image"]
 
 [dependencies]
