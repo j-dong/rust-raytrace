@@ -153,6 +153,7 @@ pub struct SolidColorBackground {
 /// in a skybox. A skybox is an environment mapping technique
 /// that stores the environment in a cube of images. This produces
 /// rich backgrounds with little computation.
+#[cfg(feature = "skybox")]
 pub struct SkyboxBackground {
     /// The face in the positive X direction.
     pub px: Texture,

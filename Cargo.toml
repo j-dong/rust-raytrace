@@ -3,9 +3,13 @@ name = "raytrace"
 version = "0.1.0"
 authors = ["James <dong.james.sept14@gmail.com>"]
 
+[features]
+default = "skybox"
+skybox = ["image"]
+
 [dependencies]
 nalgebra = "^0.4.0"
-image = "^0.6.1"
+image = { version = "^0.6.1", optional = true }
 rand = "^0.3.12"
 
 [lib]

@@ -231,6 +231,7 @@ impl Background for SolidColorBackground {
     }
 }
 
+#[cfg(feature = "skybox")]
 macro_rules! skybox_axis {
     ($self_:ident, $rayd:expr, $namep:ident, $namen:ident, $dir:ident, $otherx:ident, $othery:ident, $px:expr, $py:expr) => {
         if $rayd.$dir.abs() > $rayd.$otherx.abs() && $rayd.$dir.abs() > $rayd.$othery.abs() {
@@ -243,6 +244,7 @@ macro_rules! skybox_axis {
     };
 }
 
+#[cfg(feature = "skybox")]
 impl Background for SkyboxBackground {
     fn color(&self, ray: &Ray, _: &mut RngT) -> Color {
         let d = ray.direction;

@@ -741,6 +741,7 @@ fn_parse_function!(
     ) => Texture::load(path.clone()).map_err(|err| {SyntaxError { etype: SyntaxErrorType::TextureLoad { path: path, err: texture::error_description(err) }, location: toks.iter.location }})
 );
 
+#[cfg(feature = "skybox")]
 fn_parse_struct!(
     parse_skybox_background(toks) -> SkyboxBackground {
         px: parse_load_texture(toks),
@@ -755,7 +756,7 @@ fn_parse_struct!(
 fn_parse_box!(
     parse_box_background(toks) -> Background {
         SolidColorBackground => parse_solid_color_background(toks),
-        SkyboxBackground => parse_skybox_background(toks),
+        SkyboxBackground => if cfg!(feature = "skybox") { parse_skybox_background(toks) } else { panic!("skybox support not enabled") },
     }
 );
 
