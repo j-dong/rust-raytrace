@@ -757,7 +757,16 @@ fn_parse_struct!(
 );
 
 #[cfg(not(feature = "skybox"))]
-fn parse_skybox_background(toks: &mut Acceptor<Tokenizer>) -> ! { panic!("skybox not implemented") }
+struct SkyboxBackground;
+#[cfg(not(feature = "skybox"))]
+impl Background for SkyboxBackground {
+    fn color(&self, _: &Ray, _: &mut ::types::RngT) -> Color {
+        panic!("no skybox; how did you even get here")
+    }
+}
+
+#[cfg(not(feature = "skybox"))]
+fn parse_skybox_background(toks: &mut Acceptor<Tokenizer>) -> Result<SkyboxBackground, SyntaxError> { panic!("skybox not implemented") }
 
 fn_parse_box!(
     parse_box_background(toks) -> Background {
