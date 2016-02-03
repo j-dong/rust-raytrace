@@ -120,6 +120,7 @@ pub struct PointLight {
 }
 
 impl LightModel for PointLight {
+    #[inline]
     fn light_dir_and_sq_range_for(&self, pt: &Pnt3, _: &mut RngT) -> (Vec3, Option<f64>) {
         (Vec3::new(self.location.x - pt.x, self.location.y - pt.y, self.location.z - pt.z).normalize(), Some(self.location.sqdist(pt)))
     }
@@ -134,6 +135,22 @@ pub struct DirectionalLight {
 impl LightModel for DirectionalLight {
     fn light_dir_and_sq_range_for(&self, _: &Pnt3, _: &mut RngT) -> (Vec3, Option<f64>) {
         (-self.direction, None)
+    }
+}
+
+/// An area light with a parallelogram shape
+pub struct AreaLight {
+    /// The origin of the parallelogram
+    pub origin: Pnt3,
+    /// One side of the parallelogram
+    pub side1: Vec3,
+    /// Another side of the parallelogram
+    pub side2: Vec3,
+}
+
+impl LightModel for AreaLight {
+    fn light_dir_and_sq_range_for(&self, pt: &Pnt3, rng: &mut RngT) -> (Vec3, Option<f64>) {
+        PointLight { location: self.origin + self.side1 * rng.gen::<f64>() + self.side2 * rng.gen::<f64>() }.light_dir_and_sq_range_for(pt, rng)
     }
 }
 

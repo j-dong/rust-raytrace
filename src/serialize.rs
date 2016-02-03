@@ -723,10 +723,19 @@ fn_parse_struct!(
     }
 );
 
+fn_parse_struct!(
+    parse_area_light(toks) -> AreaLight {
+        origin: parse_pnt3(toks),
+        side1: parse_vec3(toks),
+        side2: parse_vec3(toks),
+    }
+);
+
 fn_parse_box!(
     parse_box_light_model(toks) -> LightModel {
         PointLight => parse_point_light(toks),
         DirectionalLight => parse_directional_light(toks),
+        AreaLight => parse_area_light(toks),
     }
 );
 
