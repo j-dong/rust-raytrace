@@ -3,7 +3,6 @@
 //! Cameras represent ways to project a point on the image into the
 //! scene as a ray.
 
-use types::rand::distributions::IndependentSample;
 use std::f64;
 
 use types::*;
@@ -91,7 +90,6 @@ pub struct DepthOfFieldCamera {
     /// The number of samples.
     pub samples: u32,
     im_dist: f64,
-    ang_range: rand::distributions::Range<f64>,
 }
 
 impl DepthOfFieldCamera {
@@ -104,7 +102,6 @@ impl DepthOfFieldCamera {
             aperture: aperture,
             samples: samples,
             im_dist: im_dist,
-            ang_range: rand::distributions::Range::new(0.0, 2.0 * f64::consts::PI),
         }
     }
 }
@@ -115,7 +112,7 @@ impl Camera for DepthOfFieldCamera {
         let ip = self.camera.position + dir; // point on image plane
         let fp = self.camera.position + dir * (self.focus / self.im_dist); // focal point
         // generate a random angle
-        let theta = self.ang_range.ind_sample(rng);
+        let theta = rng.gen::<f64>() * (2.0 * f64::consts::PI);
         // taking the square root of the radius yields a uniform distribution
         let rand::Closed01(r2) = rng.gen::<rand::Closed01<f64>>();
         let r = r2.sqrt() * self.aperture;

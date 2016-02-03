@@ -3,6 +3,8 @@
 //! In this module, the interaction of light with various
 //! objects is simulated using various formulae.
 
+use std::f64;
+
 use types::*;
 use shapes::{Shape, Ray, IntersectionResult};
 use camera::Camera;
@@ -96,10 +98,8 @@ impl Material for IndirectPhongMaterial {
             // indirect lighting
             for _ in 0..self.samples {
                 // generate a random ray
-                // y_range is from (-1, 1)
-                // ang_range is from (0, 2pi)
-                let r1: f64 = y_range.ind_sample(rng);
-                let r2: f64 = ang_range.ind_sample(rng);
+                let r1: f64 = rng.gen::<f64>() * 2.0 - 1.0;
+                let r2: f64 = rng.gen::<f64>() * (2.0 * f64::consts::PI);
                 let sin_theta = 1.0 - r1 * r1;
                 let phi = r2;
                 let x = sin_theta * phi.cos();
@@ -107,7 +107,7 @@ impl Material for IndirectPhongMaterial {
                 let dir = { let d = Vec3::new(x, r1, z); if dot(&d, &normal) >= 0.0 {d} else {-d} };
                 let ray = Ray { origin: pt + dir * 0.00001, direction: dir };
                 let color = ray_color(scene, &ray, significance, depth + 1, rng);
-                let fac = self.samples * 0.5 * f64::consts::FRAC_1_PI;
+                let fac = self.samples as f64 * 0.5 * f64::consts::FRAC_1_PI;
                 if diffuse {
                     res = res + self.diffuse * color * r1 / fac;
                 }
@@ -209,7 +209,7 @@ impl Material for TransparentMaterial {
         if specular {
             let rd = ray.direction - normal * (2.0 * ndv);
             let reflect = Ray { origin: pt + rd * 0.00001, direction: rd };
-            res = res + self.specular * ray_color(scene, &reflect, fresnel * significance * self.specular.significance(), rng) * fresnel;
+            res = res + self.specular * ray_color(scene, &reflect, fresnel * significance * self.specular.significance(), depth + 1, rng) * fresnel;
         }
         if fresnel < 1.0 {
             match refract {
