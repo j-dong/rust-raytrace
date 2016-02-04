@@ -15,7 +15,7 @@ use scene::*;
 use types::na::{dot, Norm};
 
 const MIN_SIGNIFICANCE: f64 = 1.0f64 / 256.0 / 2.0;
-const MAX_DEPTH: u32 = 1000;
+const MAX_DEPTH: u32 = 4;
 
 #[inline]
 fn clamp_zero(x: f64) -> f64 {
