@@ -665,6 +665,7 @@ fn_parse_box!(
 fn_parse_box!(
     parse_box_material(toks) -> Material {
         PhongMaterial => parse_phong_material(toks),
+        IndirectPhongMaterial => parse_indirect_phong_material(toks),
         FresnelMaterial => parse_fresnel_material(toks),
         TransparentMaterial => parse_transparent_material(toks),
     }
@@ -676,6 +677,16 @@ fn_parse_struct!(
         specular: parse_color(toks),
         exponent: parse_f64(toks),
         ambient: parse_color(toks),
+    }
+);
+
+fn_parse_struct!(
+    parse_indirect_phong_material(toks) -> IndirectPhongMaterial {
+        diffuse: parse_color(toks),
+        specular: parse_color(toks),
+        exponent: parse_f64(toks),
+        ambient: parse_color(toks),
+        samples: parse_u32(toks),
     }
 );
 

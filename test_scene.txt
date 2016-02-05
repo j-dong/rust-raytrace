@@ -87,6 +87,7 @@
                 side2: (0.0, 0.0, 2.0)
             }
             color: rgb(1.0, 1.0, 1.0)
+            color: rgb(0.1, 0.1, 0.1)
         }
     ]
     camera:
@@ -97,13 +98,12 @@
             (0, 1, 0),  // up vector
             3.6 // image distance, 30 * 96 / 800
         )
-    )
     background: SolidColorBackground {
         color: rgb(0.051, 0.051, 0.051)
     }
     options: {
         width: 200
         height: 200
-        antialias: 4
+        antialias: 16
     }
 }
