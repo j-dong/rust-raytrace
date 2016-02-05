@@ -78,16 +78,20 @@
                 samples: 1
             }
         }
+        {
+            bounds: Sphere {
+                center: (0, 10.65, 0)
+                radius: 5
+            }
+            material: PhongMaterial {
+                diffuse: rgb(0.0, 0.0, 0.0)
+                specular: rgb(0.0, 0.0, 0.0)
+                exponent: 1.0
+                ambient: rgb(0.01, 0.01, 0.01)
+            }
+        }
     ]
     lights: [
-        {
-            model: AreaLight {
-                origin: (-1.0, 5.9, -1.0)
-                side1: (2.0, 0.0, 0.0)
-                side2: (0.0, 0.0, 2.0)
-            }
-            color: rgb(0.01, 0.01, 0.01)
-        }
     ]
     camera:
     SimplePerspectiveCamera
@@ -95,14 +99,14 @@
             (0, 3, 17), // position
             (0, 0, -1), // look direction
             (0, 1, 0),  // up vector
-            3.6 // image distance, 30 * 96 / 800
+            3.6 // image distance, 30 * 96 / 400
         )
     background: SolidColorBackground {
         color: rgb(0.051, 0.051, 0.051)
     }
     options: {
-        width: 800
-        height: 800
-        antialias: 256
+        width: 400
+        height: 400
+        antialias: 64
     }
 }
