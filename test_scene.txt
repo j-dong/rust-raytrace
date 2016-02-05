@@ -83,11 +83,12 @@
                 center: (0, 10.65, 0)
                 radius: 5
             }
-            material: PhongMaterial {
-                diffuse: rgb(0.0, 0.0, 0.0)
+            material: IndirectPhongMaterial {
+                diffuse: rgb(1.0, 1.0, 1.0)
                 specular: rgb(0.0, 0.0, 0.0)
                 exponent: 1.0
-                ambient: rgb(0.01, 0.01, 0.01)
+                ambient: rgb(0.22, 0.22, 0.22)
+                samples: 1
             }
         }
     ]
@@ -99,14 +100,14 @@
             (0, 3, 17), // position
             (0, 0, -1), // look direction
             (0, 1, 0),  // up vector
-            3.6 // image distance, 30 * 96 / 400
+            3.17159 // image distance, 30 * 96 / 400
         )
     background: SolidColorBackground {
         color: rgb(0.051, 0.051, 0.051)
     }
     options: {
-        width: 400
-        height: 400
-        antialias: 64
+        width: 800
+        height: 800
+        antialias: 256
     }
 }

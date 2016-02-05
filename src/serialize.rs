@@ -786,7 +786,7 @@ impl Background for SkyboxBackground {
 }
 
 #[cfg(not(feature = "skybox"))]
-fn parse_skybox_background(toks: &mut Acceptor<Tokenizer>) -> Result<SkyboxBackground, SyntaxError> { panic!("skybox not implemented") }
+fn parse_skybox_background(_: &mut Acceptor<Tokenizer>) -> Result<SkyboxBackground, SyntaxError> { panic!("skybox not implemented") }
 
 fn_parse_box!(
     parse_box_background(toks) -> Background {
