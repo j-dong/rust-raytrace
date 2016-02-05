@@ -86,8 +86,7 @@
                 side1: (2.0, 0.0, 0.0)
                 side2: (0.0, 0.0, 2.0)
             }
-            color: rgb(1.0, 1.0, 1.0)
-            color: rgb(0.1, 0.1, 0.1)
+            color: rgb(0.01, 0.01, 0.01)
         }
     ]
     camera:
@@ -102,8 +101,8 @@
         color: rgb(0.051, 0.051, 0.051)
     }
     options: {
-        width: 200
-        height: 200
-        antialias: 16
+        width: 800
+        height: 800
+        antialias: 256
     }
 }
