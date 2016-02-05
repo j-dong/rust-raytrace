@@ -109,7 +109,7 @@ impl Material for IndirectPhongMaterial {
                 let color = ray_color(scene, &ray, significance, depth + 1, rng);
                 let fac = self.samples as f64 * 0.5 * f64::consts::FRAC_1_PI;
                 if diffuse {
-                    res = res + self.diffuse * color * r1.abs() / fac;
+                    res = res + self.diffuse * color * dot(&normal, &dir) / fac;
                 }
                 if specular {
                     res = res + self.specular * color * clamp_zero(dot(&normal, &((dir - ray.direction).normalize()))).powf(self.exponent) / fac;
