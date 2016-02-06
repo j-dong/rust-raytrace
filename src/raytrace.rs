@@ -49,7 +49,7 @@ impl Material for PhongMaterial {
                     }
                 }
                 if diffuse {
-                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
+                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal)) * f64::consts::FRAC_1_PI;
                 }
                 if specular {
                     res = res + self.specular * light.color * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
@@ -89,7 +89,7 @@ impl Material for IndirectPhongMaterial {
                     }
                 }
                 if diffuse {
-                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
+                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal)) * f64::consts::FRAC_1_PI;
                 }
                 if specular {
                     res = res + self.specular * light.color * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
@@ -149,7 +149,7 @@ impl Material for FresnelMaterial {
                     }
                 }
                 if diffuse {
-                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
+                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal)) * f64::consts::FRAC_1_PI;
                 }
                 if specular {
                     res = res + self.specular * light.color * fresnel * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
