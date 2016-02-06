@@ -107,7 +107,7 @@ impl Material for IndirectPhongMaterial {
                 let dir = { let d = Vec3::new(x, r1, z); if dot(&d, &normal) >= 0.0 {d} else {-d} };
                 let ray = Ray { origin: pt + dir * 0.00001, direction: dir };
                 let color = ray_color(scene, &ray, significance, depth + 1, rng);
-                let fac = self.samples as f64 * 0.5 * f64::consts::FRAC_1_PI;
+                let fac = self.samples as f64 * 0.5;
                 if diffuse {
                     res = res + self.diffuse * color * dot(&normal, &dir) / fac;
                 }

@@ -67,8 +67,8 @@
         }
         {
             bounds: Sphere {
-                center: (0, 1, 0)
-                radius: 1
+                center: (0, 1.5, 0)
+                radius: 1.5
             }
             material: IndirectPhongMaterial {
                 diffuse: rgb(1.0, 1.0, 1.0)
@@ -87,7 +87,7 @@
                 diffuse: rgb(1.0, 1.0, 1.0)
                 specular: rgb(0.0, 0.0, 0.0)
                 exponent: 1.0
-                ambient: rgb(0.22, 0.22, 0.22)
+                ambient: rgb(5.0, 5.0, 5.0)
                 samples: 1
             }
         }
@@ -100,7 +100,7 @@
             (0, 3, 17), // position
             (0, 0, -1), // look direction
             (0, 1, 0),  // up vector
-            3.17159 // image distance, 30 * 96 / 400
+            3.6 // image distance, 30 * 96 / 800
         )
     background: SolidColorBackground {
         color: rgb(0.051, 0.051, 0.051)
@@ -108,6 +108,6 @@
     options: {
         width: 800
         height: 800
-        antialias: 256
+        antialias: 1024
     }
 }
