@@ -5,11 +5,12 @@
                 point: (0, 0, -3)
                 normal: (0, 0, 1)
             }
-            material: PhongMaterial {
+            material: IndirectPhongMaterial {
                 diffuse: rgb(1.0, 1.0, 1.0)
                 specular: rgb(0.0, 0.0, 0.0)
                 exponent: 1.0
                 ambient: rgb(0.0, 0.0, 0.0)
+                samples: 1
             }
         }
         {
@@ -17,11 +18,12 @@
                 point: (0, 0, 0)
                 normal: (0, 1.0, 0)
             }
-            material: PhongMaterial {
+            material: IndirectPhongMaterial {
                 diffuse: rgb(1.0, 1.0, 1.0)
                 specular: rgb(0.0, 0.0, 0.0)
                 exponent: 1.0
                 ambient: rgb(0.0, 0.0, 0.0)
+                samples: 1
             }
         }
         {
@@ -29,11 +31,12 @@
                 point: (0, 6, 0)
                 normal: (0, -1.0, 0)
             }
-            material: PhongMaterial {
+            material: IndirectPhongMaterial {
                 diffuse: rgb(1.0, 1.0, 1.0)
                 specular: rgb(0.0, 0.0, 0.0)
                 exponent: 1.0
                 ambient: rgb(0.0, 0.0, 0.0)
+                samples: 1
             }
         }
         {
@@ -41,11 +44,12 @@
                 point: (-3, 0, 0)
                 normal: (1, 0, 0)
             }
-            material: PhongMaterial {
+            material: IndirectPhongMaterial {
                 diffuse: rgb(1.0, 0.0, 0.0)
                 specular: rgb(0.0, 0.0, 0.0)
                 exponent: 1.0
                 ambient: rgb(0.0, 0.0, 0.0)
+                samples: 1
             }
         }
         {
@@ -53,54 +57,57 @@
                 point: (3, 0, 0)
                 normal: (-1, 0, 0)
             }
-            material: PhongMaterial {
+            material: IndirectPhongMaterial {
                 diffuse: rgb(0.0, 1.0, 0.0)
                 specular: rgb(0.0, 0.0, 0.0)
                 exponent: 1.0
                 ambient: rgb(0.0, 0.0, 0.0)
+                samples: 1
             }
         }
         {
             bounds: Sphere {
-                center: (0, 1, 0)
-                radius: 1
+                center: (0, 1.5, 0)
+                radius: 1.5
             }
-            material: PhongMaterial {
+            material: IndirectPhongMaterial {
                 diffuse: rgb(1.0, 1.0, 1.0)
                 specular: rgb(0.0, 0.0, 0.0)
                 exponent: 1.0
                 ambient: rgb(0.0, 0.0, 0.0)
+                samples: 1
+            }
+        }
+        {
+            bounds: Sphere {
+                center: (0, 10.65, 0)
+                radius: 5
+            }
+            material: IndirectPhongMaterial {
+                diffuse: rgb(1.0, 1.0, 1.0)
+                specular: rgb(0.0, 0.0, 0.0)
+                exponent: 1.0
+                ambient: rgb(5.0, 5.0, 5.0)
+                samples: 1
             }
         }
     ]
     lights: [
-        {
-            model: AreaLight {
-                origin: (-1.0, 5.9, -1.0)
-                side1: (2.0, 0.0, 0.0)
-                side2: (0.0, 0.0, 2.0)
-            }
-            color: rgb(1.0, 1.0, 1.0)
-        }
     ]
-    camera: //DepthOfFieldCamera new (
+    camera:
     SimplePerspectiveCamera
         new(
             (0, 3, 17), // position
             (0, 0, -1), // look direction
             (0, 1, 0),  // up vector
             3.6 // image distance, 30 * 96 / 800
-        ) /*,
-        19.82, // focus
-        0.3, // aperture size
-        1 // samples
-    ) */
+        )
     background: SolidColorBackground {
         color: rgb(0.051, 0.051, 0.051)
     }
     options: {
         width: 800
         height: 800
-        antialias: 16
+        antialias: 1024
     }
 }

@@ -15,7 +15,7 @@ use scene::*;
 use types::na::{dot, Norm};
 
 const MIN_SIGNIFICANCE: f64 = 1.0f64 / 256.0 / 2.0;
-const MAX_DEPTH: u32 = 1000;
+const MAX_DEPTH: u32 = 4;
 
 #[inline]
 fn clamp_zero(x: f64) -> f64 {
@@ -49,7 +49,7 @@ impl Material for PhongMaterial {
                     }
                 }
                 if diffuse {
-                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
+                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal)) * f64::consts::FRAC_1_PI;
                 }
                 if specular {
                     res = res + self.specular * light.color * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
@@ -89,7 +89,7 @@ impl Material for IndirectPhongMaterial {
                     }
                 }
                 if diffuse {
-                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
+                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal)) * f64::consts::FRAC_1_PI;
                 }
                 if specular {
                     res = res + self.specular * light.color * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
@@ -107,9 +107,9 @@ impl Material for IndirectPhongMaterial {
                 let dir = { let d = Vec3::new(x, r1, z); if dot(&d, &normal) >= 0.0 {d} else {-d} };
                 let ray = Ray { origin: pt + dir * 0.00001, direction: dir };
                 let color = ray_color(scene, &ray, significance, depth + 1, rng);
-                let fac = self.samples as f64 * 0.5 * f64::consts::FRAC_1_PI;
+                let fac = self.samples as f64 * 0.5;
                 if diffuse {
-                    res = res + self.diffuse * color * r1 / fac;
+                    res = res + self.diffuse * color * dot(&normal, &dir) / fac;
                 }
                 if specular {
                     res = res + self.specular * color * clamp_zero(dot(&normal, &((dir - ray.direction).normalize()))).powf(self.exponent) / fac;
@@ -149,7 +149,7 @@ impl Material for FresnelMaterial {
                     }
                 }
                 if diffuse {
-                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal));
+                    res = res + self.diffuse * light.color * clamp_zero(dot(&ldir, &normal)) * f64::consts::FRAC_1_PI;
                 }
                 if specular {
                     res = res + self.specular * light.color * fresnel * clamp_zero(dot(&normal, &((ldir - ray.direction).normalize()))).powf(self.exponent);
