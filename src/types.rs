@@ -1,7 +1,7 @@
 //! Type aliases for convenience.
 
-extern crate nalgebra as na_crate;
-extern crate rand as rand_crate;
+pub extern crate nalgebra as na_crate;
+pub extern crate rand as rand_crate;
 /// Nalgebra crate
 pub use self::na_crate as na;
 /// Rand crate
